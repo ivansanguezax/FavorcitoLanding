@@ -33,8 +33,8 @@ const Popular = () => {
       src: "https://res.cloudinary.com/dfgjenml4/image/upload/v1738017524/mudanza_de_taman%CC%83o_mediano_oi6ajn.png",
       content: (
         <div className="bg-neutral-light p-8 md:p-14 rounded-3xl mb-4">
-          <p className="text-neutral-dark text-base md:text-xl max-w-3xl mx-auto">
-            <span className="font-bold text-primary-dark">
+          <p className="text-neutral-dark text-sm md:text-base max-w-3xl mx-auto">
+            <span className="font-medium text-primary-dark">
               ¡Mudarte nunca fue tan fácil!
             </span>{" "}
             Estudiantes experimentados te ayudarán a empacar, cargar y organizar
@@ -50,8 +50,8 @@ const Popular = () => {
       src: "https://res.cloudinary.com/dfgjenml4/image/upload/v1738017523/cocina_de_taman%CC%83o_mediano_mz4mwo.png",
       content: (
         <div className="bg-neutral-100 dark:bg-neutral-800 p-8 md:p-14 rounded-3xl mb-4">
-          <p className="text-neutral-600 dark:text-neutral-400 text-base md:text-2xl max-w-3xl mx-auto">
-            <span className="font-bold text-neutral-700 dark:text-neutral-200">
+          <p className="text-neutral-600 dark:text-neutral-400 text-sm md:text-base max-w-3xl mx-auto">
+            <span className="font-medium text-neutral-700 dark:text-neutral-200">
               Estudiantes de gastronomía a tu servicio
             </span>{" "}
             Prepara tu evento especial con chefs estudiantes talentosos. Menús
@@ -62,16 +62,16 @@ const Popular = () => {
     },
     {
       category: "Mecánica",
-      title: "Mantenimiento de tu vehículo",
+      title: "Mantenimiento de tu carro",
       src: "https://res.cloudinary.com/dfgjenml4/image/upload/v1738017524/mecanico_de_taman%CC%83o_mediano_daqfyg.png",
       content: (
         <div className="bg-neutral-100 dark:bg-neutral-800 p-8 md:p-14 rounded-3xl mb-4">
-          <p className="text-neutral-600 dark:text-neutral-400 text-base md:text-2xl max-w-3xl mx-auto">
-            <span className="font-bold text-neutral-700 dark:text-neutral-200">
+          <p className="text-neutral-600 dark:text-neutral-400 text-sm md:text-base max-w-3xl mx-auto">
+            <span className="font-medium text-neutral-700 dark:text-neutral-200">
               Mecánicos en formación a tu alcance
             </span>{" "}
             Estudiantes de mecánica automotriz te ayudan con el mantenimiento
-            básico de tu vehículo. Diagnósticos precisos y soluciones efectivas.
+            básico de tu carro. Diagnósticos precisos y soluciones efectivas.
           </p>
         </div>
       ),
@@ -82,8 +82,8 @@ const Popular = () => {
       src: "https://res.cloudinary.com/dfgjenml4/image/upload/v1738017524/lavar_de_taman%CC%83o_mediano_tupp47.png",
       content: (
         <div className="bg-neutral-100 dark:bg-neutral-800 p-8 md:p-14 rounded-3xl mb-4">
-          <p className="text-neutral-600 dark:text-neutral-400 text-base md:text-2xl max-w-3xl mx-auto">
-            <span className="font-bold text-neutral-700 dark:text-neutral-200">
+          <p className="text-neutral-600 dark:text-neutral-400 text-sm md:text-base max-w-3xl mx-auto">
+            <span className="font-medium text-neutral-700 dark:text-neutral-200">
               Tu auto brillará como nuevo
             </span>{" "}
             Servicio de lavado y detallado por estudiantes comprometidos.
@@ -98,8 +98,8 @@ const Popular = () => {
       src: "https://res.cloudinary.com/dfgjenml4/image/upload/v1738017524/web_de_taman%CC%83o_mediano_i9vfw7.png",
       content: (
         <div className="bg-neutral-100 dark:bg-neutral-800 p-8 md:p-14 rounded-3xl mb-4">
-          <p className="text-neutral-600 dark:text-neutral-400 text-base md:text-2xl max-w-3xl mx-auto">
-            <span className="font-bold text-neutral-700 dark:text-neutral-200">
+          <p className="text-neutral-600 dark:text-neutral-400 text-sm md:text-base max-w-3xl mx-auto">
+            <span className="font-medium text-neutral-700 dark:text-neutral-200">
               Tu presencia digital en manos expertas
             </span>{" "}
             Estudiantes de programación crearán tu sitio web con las últimas
@@ -114,8 +114,8 @@ const Popular = () => {
       src: "https://res.cloudinary.com/dfgjenml4/image/upload/v1738017523/luz_de_taman%CC%83o_mediano_nvzogf.png",
       content: (
         <div className="bg-neutral-100 dark:bg-neutral-800 p-8 md:p-14 rounded-3xl mb-4">
-          <p className="text-neutral-600 dark:text-neutral-400 text-base md:text-2xl max-w-3xl mx-auto">
-            <span className="font-bold text-neutral-700 dark:text-neutral-200">
+          <p className="text-neutral-600 dark:text-neutral-400 text-sm md:text-base max-w-3xl mx-auto">
+            <span className="font-medium text-neutral-700 dark:text-neutral-200">
               Resuelve cualquier problema del hogar
             </span>{" "}
             Estudiantes multifacéticos para reparaciones, instalaciones y
@@ -129,7 +129,7 @@ const Popular = () => {
   return (
     <div className="w-full h-full py-5">
       <h2 className="max-w-7xl pl-4 mx-auto text-xl md:text-4xl font-bold text-primary-dark">
-      Lo más popular
+        Lo más popular
       </h2>
       <Carousel
         items={data.map((card, index) => (
@@ -216,20 +216,20 @@ const Carousel = ({ items, initialScroll = 0 }) => {
             ))}
           </div>
         </div>
-        <div className="flex justify-end gap-2 mr-10">
+        <div className="flex justify-end gap-2 mr-4 md:mr-10 mb-4">
           <button
-            className="relative z-40 h-10 w-10 rounded-full bg-primary-light flex items-center justify-center disabled:opacity-50"
+            className="relative z-40 h-10 w-10 rounded-full bg-[#02533C] flex items-center justify-center disabled:opacity-50"
             onClick={scrollLeft}
             disabled={!canScrollLeft}
           >
-            <ArrowLeft className="h-6 w-6 text-gray-500" />
+            <ArrowLeft className="h-6 w-6 text-white" />
           </button>
           <button
-            className="relative z-40 h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center disabled:opacity-50"
+            className="relative z-40 h-10 w-10 rounded-full bg-[#02533C] flex items-center justify-center disabled:opacity-50"
             onClick={scrollRight}
             disabled={!canScrollRight}
           >
-            <ArrowRight className="h-6 w-6 text-gray-500" />
+            <ArrowRight className="h-6 w-6 text-white" />
           </button>
         </div>
       </div>
@@ -293,7 +293,7 @@ const Card = ({ card, index }) => {
               <p className="text-base font-medium text-black dark:text-white">
                 {card.category}
               </p>
-              <p className="text-2xl md:text-5xl font-semibold text-neutral-700 mt-4 dark:text-white">
+              <p className="text-2xl md:text-4xl font-medium text-neutral-700 mt-4 dark:text-white">
                 {card.title}
               </p>
               <div className="py-10">{card.content}</div>
@@ -310,7 +310,7 @@ const Card = ({ card, index }) => {
           <p className="text-white text-xs md:text-sm font-medium text-left">
             {card.category}
           </p>
-          <p className="text-white text-lg md:text-2xl font-semibold max-w-xs text-left mt-2">
+          <p className="text-white text-base md:text-lg font-medium max-w-xs text-left mt-2 md:block hidden">
             {card.title}
           </p>
         </div>
