@@ -4,11 +4,10 @@ import { FlipWords } from "../common/FlipWords";
 const words = [
   "las filas",
   "limpieza",
-  "la mudanza",
+  "mudanza",
   "tu carro",
-  "la comida",
+  "catering",
   "maquillaje",
-  "páginas web",
   "ejercicios",
 ];
 

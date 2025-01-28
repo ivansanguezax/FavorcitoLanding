@@ -43,7 +43,7 @@ const Footer = () => {
               />
             </div>
             <p className="text-neutral-dark text-sm whitespace-nowrap">
-              © 2024
+              © 2025
             </p>
           </div>
 

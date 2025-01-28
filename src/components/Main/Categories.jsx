@@ -151,7 +151,7 @@ export const Categories = () => {
             Servicios populares
           </h2>
           <p className="text-lg text-neutral-dark">
-            Encuentra el chambista ideal para tu necesidad
+            Encuentra el universitario ideal para tu necesidad
           </p>
         </motion.div>
 
