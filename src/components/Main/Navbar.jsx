@@ -58,41 +58,42 @@ export const Navbar = () => {
     <>
       <Toast ref={toast} position="bottom-right" />
       <Dialog 
-        visible={showModal} 
-        onHide={() => setShowModal(false)}
-        header="¡Muy Pronto!"
-        draggable={false}
-        resizable={false}
-        className="w-11/12 md:w-2/3 lg:w-1/2"
-        contentClassName="bg-white"
-        headerClassName="bg-[#02533C] text-[#D3FE94]"
-        style={{ borderRadius: '1rem' }}
-      >
-        <div className="p-6 space-y-6">
-          <div className="flex flex-col items-center text-center">
-            <h3 className="text-xl font-semibold text-[#02533C] mb-4">
-              ¡Estamos preparando algo increíble!
-            </h3>
-            <p className="text-gray-600 mb-6 max-w-2xl">
-              Muy pronto podrás unirte a nuestra comunidad y acceder a todos nuestros servicios exclusivos. ¡Prepárate para una experiencia única!
-            </p>
-            <ul className="space-y-3 text-left w-full max-w-md">
-              <li className="flex items-center text-gray-600">
-                <i className="pi pi-check-circle mr-2 text-[#02533C]"></i>
-                Conecta con otros estudiantes
-              </li>
-              <li className="flex items-center text-gray-600">
-                <i className="pi pi-check-circle mr-2 text-[#02533C]"></i>
-                Accede a recursos exclusivos
-              </li>
-              <li className="flex items-center text-gray-600">
-                <i className="pi pi-check-circle mr-2 text-[#02533C]"></i>
-                Participa en eventos especiales
-              </li>
-            </ul>
-          </div>
-        </div>
-      </Dialog>
+  visible={showModal} 
+  onHide={() => setShowModal(false)}
+  header="¡Muy Pronto!"
+  draggable={false}
+  resizable={false}
+  className="w-11/12 md:w-2/3 lg:w-1/2"
+  contentClassName="bg-white"
+  headerClassName="bg-[#02533C] text-[#D3FE94]"
+  style={{ borderRadius: '1rem' }}
+>
+  <div className="p-6 space-y-6">
+    <div className="flex flex-col items-center text-center">
+      <h3 className="text-xl font-semibold text-[#02533C] mb-4">
+        ¡Estamos a punto de lanzar algo increíble!
+      </h3>
+      <p className="text-gray-600 mb-6 max-w-2xl">
+        Muy pronto podrás registrarte en Favorcito y comenzar a aceptar tareas para ganar dinero de manera fácil y flexible.
+      </p>
+      <ul className="space-y-3 text-left w-full max-w-md">
+        <li className="flex items-center text-gray-600">
+          <i className="pi pi-check-circle mr-2 text-[#02533C]"></i>
+          Conéctate con personas que necesitan tu ayuda
+        </li>
+        <li className="flex items-center text-gray-600">
+          <i className="pi pi-check-circle mr-2 text-[#02533C]"></i>
+          Realiza microtrabajos y gana dinero extra
+        </li>
+        <li className="flex items-center text-gray-600">
+          <i className="pi pi-check-circle mr-2 text-[#02533C]"></i>
+          Accede a beneficios exclusivos para estudiantes
+        </li>
+      </ul>
+    </div>
+  </div>
+</Dialog>
+
 
       <header className="fixed w-full z-50">
         <motion.nav
