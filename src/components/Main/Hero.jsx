@@ -56,9 +56,9 @@ export const Hero = () => {
               transition={{ delay: 0.5, duration: 0.8 }}
               className="flex justify-center lg:justify-start"
             >
-              <button className="bg-primary-dark text-white px-8 py-3 rounded-full font-medium hover:bg-opacity-90 transition-all duration-300 transform hover:scale-105">
+              {/* <button className="bg-primary-dark text-white px-8 py-3 rounded-full font-medium hover:bg-opacity-90 transition-all duration-300 transform hover:scale-105">
                 Quiero un favorcito
-              </button>
+              </button> */}
             </motion.div>
           </motion.div>
 

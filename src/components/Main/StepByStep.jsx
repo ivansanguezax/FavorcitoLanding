@@ -66,7 +66,7 @@ const StepByStep = () => {
           ))}
         </div>
 
-        <div className="flex flex-col md:flex-row gap-4 justify-center items-center mt-12">
+        {/* <div className="flex flex-col md:flex-row gap-4 justify-center items-center mt-12">
           <motion.button
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -84,7 +84,7 @@ const StepByStep = () => {
           >
             Quiero ganar ayudando
           </motion.button>
-        </div>
+        </div> */}
       </div>
     </div>
   );
