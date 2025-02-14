@@ -1,142 +1,162 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 
-const categories = [
-  // Primera fila - Categorías más demandadas
+const fixedCategories = [
   {
     id: 1,
     title: "Clases\nParticulares",
     icon: "pi pi-book",
-    description: "Apoyo escolar y universitario",
+    description: "Apoyo escolar y preuniversitario",
     popular: true
   },
   {
     id: 2,
-    title: "Sistemas y\nComputación",
-    icon: "pi pi-desktop",
-    description: "Soporte técnico y programación",
+    title: "Trámites y\nDiligencias",
+    icon: "pi pi-file",
+    description: "Servicios en instituciones públicas",
     popular: true
   },
   {
     id: 3,
-    title: "Desarrollo\nWeb",
-    icon: "pi pi-code",
-    description: "Páginas web y sistemas",
+    title: "Compras en el\nMercado",
+    icon: "pi pi-shopping-cart",
+    description: "Mandados y entregas a domicilio",
     popular: true
   },
   {
     id: 4,
-    title: "Trámites y\nGestiones",
-    icon: "pi pi-file",
-    description: "Servicios administrativos",
+    title: "Mil\nOficios",
+    icon: "pi pi-wrench",
+    description: "Todo tipo de chambas y arreglos",
     popular: true
   },
   {
     id: 5,
-    title: "Chef a\nDomicilio",
-    icon: "pi pi-stop",
-    description: "Comida casera y eventos",
+    title: "Paseo de\nMascotas",
+    icon: "pi pi-heart-fill",
+    description: "Cuidado y atención de mascotas",
     popular: true
   },
-  // Categorías adicionales
+
+]
+
+const dynamicCategories = [
   {
     id: 6,
-    title: "Transporte y\nMudanza",
-    icon: "pi pi-truck",
-    description: "Fletes, mudanzas y envíos"
+    title: "Cuidado de\nAbuelitos",
+    icon: "pi pi-heart",
+    description: "Acompañamiento y atención",
   },
   {
     id: 7,
-    title: "Maestro\nAlbañil",
-    icon: "pi pi-wrench",
-    description: "Reparaciones y arreglos"
+    title: "Cocinero a\nDomicilio",
+    icon: "pi pi-stop",
+    description: "Comida casera y eventos"
   },
   {
     id: 8,
-    title: "Cuidado\nPersonal",
-    icon: "pi pi-heart",
-    description: "Cuidado de adultos mayores"
+    title: "Manicure y\nPedicure",
+    icon: "pi pi-star",
+    description: "Arreglo de uñas a domicilio"
   },
   {
     id: 9,
-    title: "Jardinería",
-    icon: "pi pi-inbox",
-    description: "Mantenimiento de jardines"
+    title: "Mecánico\nCasero",
+    icon: "pi pi-cog",
+    description: "Reparación de vehículos"
   },
   {
     id: 10,
-    title: "Mascotas",
-    icon: "pi pi-heart-fill",
-    description: "Cuidado y paseo"
+    title: "Jardinero",
+    icon: "pi pi-inbox",
+    description: "Arreglo de jardines y plantas"
   },
   {
     id: 11,
-    title: "Música y\nEventos",
-    icon: "pi pi-volume-up",
-    description: "DJ y animación"
+    title: "Técnico de\nComputadoras",
+    icon: "pi pi-desktop",
+    description: "Reparación de PCs y laptops"
   },
   {
     id: 12,
-    title: "Técnico\nElectrónico",
-    icon: "pi pi-mobile",
-    description: "Reparación de equipos"
+    title: "Entrenador\nPersonal",
+    icon: "pi pi-user",
+    description: "Rutinas y ejercicios"
   },
   {
     id: 13,
-    title: "Servicio\nDoméstico",
-    icon: "pi pi-home",
-    description: "Limpieza y organización"
+    title: "Fotógrafo",
+    icon: "pi pi-camera",
+    description: "Fotos para eventos y documentos"
   },
   {
     id: 14,
-    title: "Personal\nTrainer",
-    icon: "pi pi-user",
-    description: "Entrenamiento personalizado"
+    title: "Técnico\nInstalador",
+    icon: "pi pi-mobile",
+    description: "Instalación de equipos"
   },
   {
     id: 15,
-    title: "Arquitectura",
-    icon: "pi pi-building",
-    description: "Diseño y planos"
+    title: "Mesero\nEventos",
+    icon: "pi pi-users",
+    description: "Atención en fiestas y eventos"
   },
   {
     id: 16,
-    title: "Fotografía",
-    icon: "pi pi-camera",
-    description: "Sesiones y edición"
+    title: "Páginas\nWeb",
+    icon: "pi pi-globe",
+    description: "Desarrollo de sitios web"
   },
   {
     id: 17,
-    title: "Diseño",
-    icon: "pi pi-pencil",
-    description: "Gráfico y digital"
+    title: "Creador de\nContenido",
+    icon: "pi pi-video",
+    description: "Videos para redes sociales"
   },
   {
     id: 18,
-    title: "Modelaje",
-    icon: "pi pi-video",
-    description: "Promociones y eventos"
+    title: "Editor de\nVideos",
+    icon: "pi pi-camera",
+    description: "Edición profesional"
   },
   {
     id: 19,
-    title: "Otros",
-    icon: "pi pi-bolt",
-    description: "Servicios varios"
+    title: "Diseñador\nGráfico",
+    icon: "pi pi-pencil",
+    description: "Logos y material publicitario"
   },
   {
     id: 20,
-    title: "Contabilidad",
-    icon: "pi pi-calculator",
-    description: "Servicios contables"
+    title: "Otros\nServicios",
+    icon: "pi pi-bolt",
+    description: "Servicios varios",
+    isLast: true
   }
 ]
 
 export const Categories = () => {
   const [showAll, setShowAll] = useState(false)
+  const [shuffledCategories, setShuffledCategories] = useState([])
   
+  useEffect(() => {
+    // Separar la categoría "Otros"
+    const othersCategory = dynamicCategories.find(cat => cat.isLast)
+    const categoriesToShuffle = dynamicCategories.filter(cat => !cat.isLast)
+    
+    // Mezclar las categorías usando el algoritmo Fisher-Yates
+    const shuffled = [...categoriesToShuffle]
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+    }
+    
+    // Añadir "Otros" al final
+    setShuffledCategories([...shuffled, othersCategory])
+  }, [])
+
   const visibleCategories = showAll 
-    ? categories 
-    : categories.filter(cat => cat.popular)
+    ? [...fixedCategories, ...shuffledCategories]
+    : fixedCategories
 
   return (
     <section className="py-16 px-4 md:px-8 bg-neutral-light">
@@ -193,7 +213,7 @@ export const Categories = () => {
             onClick={() => setShowAll(!showAll)}
             className="bg-white text-primary-dark border-2 border-primary-dark px-6 py-2 rounded-full font-medium hover:bg-primary-dark hover:text-white transition-colors duration-300"
           >
-            {showAll ? "Mostrar menos" : "Ver más categorías"}
+            {showAll ? "Mostrar menos" : "Ver más servicios"}
           </button>
         </motion.div>
       </div>

@@ -119,20 +119,13 @@ export const Navbar = () => {
             
             {/* Desktop Menu */}
             <div className="hidden md:flex items-center gap-6">
-              <Button
-                onClick={() => setShowModal(true)}
-                className={`px-6 py-2 rounded-full font-light flex items-center gap-2 ${buttonBaseClass}`}
-                label="Soy estudiante"
-                icon="pi pi-arrow-up-right"
-                iconPos="right"
-              />
-              <Button
-                onClick={() => setShowModal(true)}
-                className={`px-6 py-2 rounded-full font-light flex items-center gap-2 ${buttonBaseClass}`}
-                label="Quiero un favorcito"
-                icon="pi pi-arrow-up-right"
-                iconPos="right"
-              />
+            <Button
+    onClick={() => setShowModal(true)}
+    className={`px-6 py-2 rounded-full font-light flex items-center gap-2 ${buttonBaseClass}`}
+    label="Quiero un favorcito"
+    icon="pi pi-arrow-up-right"
+    iconPos="right"
+  />
             </div>
             
             {/* Mobile Menu Button */}

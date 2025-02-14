@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { FlipWords } from "../common/FlipWords";
+import { Button } from "primereact/button";
 
 const words = [
   "las filas",
@@ -13,7 +14,7 @@ const words = [
 
 export const Hero = () => {
   return (
-    <section className="w-full  pt-24 md:pt-32 pb-12 relative overflow-hidden">
+    <section className="w-full pt-24 md:pt-32 pb-12 relative overflow-hidden">
       <div className="container mx-auto px-4 md:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
           {/* Left Content */}
@@ -45,20 +46,24 @@ export const Hero = () => {
               <img
                 src="https://res.cloudinary.com/dfgjenml4/image/upload/v1738003319/favButtton_kxmrya.png"
                 alt="Favorcito"
-                className="h-[1.25em] inline-block mx-1 "
+                className="h-[1.25em] inline-block mx-1"
               /> ahora y deja que un universitario te ayude.
             </motion.p>
 
-            {/* CTA Button */}
+            {/* CTA Buttons */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5, duration: 0.8 }}
-              className="flex justify-center lg:justify-start"
+              className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
             >
-              {/* <button className="bg-primary-dark text-white px-8 py-3 rounded-full font-medium hover:bg-opacity-90 transition-all duration-300 transform hover:scale-105">
-                Quiero un favorcito
-              </button> */}
+              <Button
+                onClick={() => setShowModal(true)}
+                className="border-2 border-[#02533C] text-[#02533C] hover:bg-[#02533C] hover:text-white transition-all duration-300 px-6 py-2 rounded-full font-light flex items-center gap-2"
+                label="Soy estudiante"
+                icon="pi pi-arrow-up-right"
+                iconPos="right"
+              />
             </motion.div>
           </motion.div>
 
@@ -70,7 +75,6 @@ export const Hero = () => {
             className="relative h-full min-h-[400px] lg:min-h-[600px]"
           >
             <div className="absolute inset-0 flex items-center justify-center">
-              {/* Gradient overlay for bottom fade effect */}
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-neutral-light opacity-100 z-10" />
 
               <img
@@ -79,7 +83,6 @@ export const Hero = () => {
                 className="w-full h-full object-contain object-center relative z-0"
               />
 
-              {/* Texto superpuesto en la parte inferior */}
               <div className="absolute bottom-12 left-1/2 transform -translate-x-1/2 z-20 w-[36rem] max-w-[90%]">
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
@@ -87,7 +90,7 @@ export const Hero = () => {
                   transition={{ delay: 0.8, duration: 0.5 }}
                   className="bg-primary-dark px-8 py-3 rounded-full text-center"
                 >
-                  <p className="text-primary-light text-sm sm:text-lg md:text-xl font-medium ">
+                  <p className="text-primary-light text-sm sm:text-lg md:text-xl font-medium">
                     Convierte tu talento en ingresos
                   </p>
                 </motion.div>
@@ -104,10 +107,10 @@ export const Hero = () => {
         animate={{ opacity: 0.3 }}
         transition={{ duration: 1.5 }}
       />
-
     </section>
   );
 };
+
 
 <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 w-[36rem] max-w-[90%]">
   <div className="bg-primary-dark px-8 py-3 rounded-full text-center"></div>
