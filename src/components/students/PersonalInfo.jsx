@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { InputText } from "primereact/inputtext";
 import { Calendar } from "primereact/calendar";
 import { Button } from "primereact/button";
@@ -10,6 +10,7 @@ import { ProgressSpinner } from "primereact/progressspinner";
 import PropTypes from "prop-types";
 import fileService from "../../services/fileService";
 
+
 const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
   const [minDate, setMinDate] = useState(new Date());
   const [maxDate, setMaxDate] = useState(new Date());
@@ -20,6 +21,8 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const fileInputRef = useRef(null);
+  const dropZoneRef = useRef(null);
 
   const cities = [
     { label: "La Paz", value: "La Paz" },
@@ -82,15 +85,18 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
       { label: "Manuripi", value: "Manuripi" },
     ],
   };
+  
 
   useEffect(() => {
-    // Calcular fecha mínima (25 años atrás)
+    // Calcular fecha mínima (exactamente 25 años atrás)
     const twentyFiveYearsAgo = new Date();
     twentyFiveYearsAgo.setFullYear(twentyFiveYearsAgo.getFullYear() - 25);
+    twentyFiveYearsAgo.setHours(0, 0, 0, 0);
 
-    // Calcular fecha máxima (18 años atrás)
+    // Calcular fecha máxima (exactamente 18 años atrás)
     const eighteenYearsAgo = new Date();
     eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 18);
+    eighteenYearsAgo.setHours(23, 59, 59, 999);
 
     // Guardar ambas fechas en el estado
     setMinDate(twentyFiveYearsAgo);
@@ -143,6 +149,19 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
 
     if (!formData.bornDate) {
       showError("Fecha de nacimiento es requerida");
+      return false;
+    }
+
+    const birthDate = new Date(formData.bornDate);
+    const today = new Date();
+    const age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    const ageInYears = m < 0 || (m === 0 && today.getDate() < birthDate.getDate()) 
+      ? age - 1 
+      : age;
+      
+    if (ageInYears < 18 || ageInYears > 25) {
+      showError("La edad debe estar entre 18 y 25 años");
       return false;
     }
 
@@ -285,6 +304,8 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
     
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFile(e.dataTransfer.files[0]);
+      // Abre el popup modal para mostrar la vista previa
+      setShowUploadModal(true);
     }
   };
 
@@ -304,7 +325,13 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
     e.preventDefault();
     if (e.target.files && e.target.files[0]) {
       handleFile(e.target.files[0]);
+      // Abre el popup si se selecciona un archivo
+      setShowUploadModal(true);
     }
+  };
+
+  const handleQRBoxClick = () => {
+    setShowUploadModal(true);
   };
 
   // Custom footer for the upload dialog
@@ -366,29 +393,29 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
             Fecha de nacimiento <span className="text-red-500">*</span>
           </label>
           <div className="relative">
-            <Calendar
-              id="bornDate"
-              value={formatDate(formData.bornDate)}
-              onChange={(e) =>
-                updateFormData({
-                  ...formData,
-                  bornDate: e.value,
-                })
-              }
-              showIcon
-              minDate={minDate}
-              maxDate={maxDate}
-              dateFormat="dd/mm/yy"
-              className="w-full"
-              inputClassName="w-full border-2 border-neutral-gray rounded-lg px-4 py-2.5 h-12"
-              panelClassName="border border-neutral-gray rounded-lg shadow-lg p-2"
-              view="date"
-              viewDate={new Date(new Date().getFullYear() - 20, 0, 1)} // Mostrar el año de quienes tienen 20 años
-              yearNavigator
-              yearRange={`${new Date().getFullYear() - 25}:${
-                new Date().getFullYear() - 18
-              }`}
-            />
+          <Calendar
+  id="bornDate"
+  value={formatDate(formData.bornDate)}
+  onChange={(e) =>
+    updateFormData({
+      ...formData,
+      bornDate: e.value,
+    })
+  }
+  showIcon
+  minDate={minDate}
+  maxDate={maxDate}
+  dateFormat="dd/mm/yy"
+  className="w-full"
+  inputClassName="w-full border-2 border-neutral-gray rounded-lg px-4 py-2.5 h-12"
+  panelClassName="border border-neutral-gray rounded-lg shadow-lg p-2"
+  view="date"
+  viewDate={new Date(new Date().getFullYear() - 20, 0, 1)}
+  yearNavigator
+  yearRange={`${new Date().getFullYear() - 25}:${
+    new Date().getFullYear() - 18
+  }`}
+/>
           </div>
         </div>
 
@@ -506,8 +533,12 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
             QR de pago <span className="text-neutral-gray">(opcional)</span>
           </label>
           <div 
-            onClick={() => setShowUploadModal(true)}
+            ref={dropZoneRef}
+            onClick={handleQRBoxClick}
             className="border-2 border-dashed border-neutral-gray rounded-lg p-4 cursor-pointer hover:border-primary-dark hover:bg-primary-light/5 transition-all"
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
           >
             {formData.qrCode ? (
               <div className="flex items-center space-x-4">
@@ -592,6 +623,7 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
         ) : (
           <div className="p-6 bg-white">
             <div
+              ref={fileInputRef}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -620,6 +652,12 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
                           e.stopPropagation();
                           setPreview(null);
                           setSelectedFile(null);
+                          toast.current.show({
+                            severity: 'info',
+                            summary: 'Archivo eliminado',
+                            detail: 'Asegúrate de mostrar el lado donde está tu código QR cuando agregues un nuevo documento',
+                            life: 5000
+                          });
                         }}
                       />
                     </div>

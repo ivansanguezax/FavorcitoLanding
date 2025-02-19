@@ -6,12 +6,12 @@ import { HelmetProvider } from 'react-helmet-async';
 function App() {
   return (
     <HelmetProvider>
-    <Router>
-      <Routes>
-        <Route path="/" element={<MainLayout />} />
-        <Route path="/register/*" element={<FormStudentsLayout />} />
-      </Routes>
-    </Router>
+      <Router>
+        <Routes>
+          <Route path="/" element={<MainLayout />} />
+          <Route path="/register/*" element={<FormStudentsLayout />} />
+        </Routes>
+      </Router>
     </HelmetProvider>
   );
 }

@@ -5,17 +5,17 @@ const Footer = () => {
   const socialLinks = [
     {
       name: 'Instagram',
-      url: '#',
+      url: 'https://www.instagram.com/tufavorcito/',
       icon: <Instagram size={20} />
     },
     {
       name: 'Facebook',
-      url: '#',
+      url: 'https://www.facebook.com/tufavorcito/',
       icon: <Facebook size={20} />
     },
     {
       name: 'TikTok',
-      url: '#',
+      url: 'https://www.tiktok.com/@tufavorcit0',
       icon: (
         <svg 
           width="20" 

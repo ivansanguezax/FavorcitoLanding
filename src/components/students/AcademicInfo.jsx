@@ -15,7 +15,11 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+  const [otherUniversity, setOtherUniversity] = useState('');
+  const [selectedUniversityType, setSelectedUniversityType] = useState('');
   const toast = useRef(null);
+  const fileInputRef = useRef(null);
+  const dropZoneRef = useRef(null);
 
   const universities = [
     { label: 'Universidad Mayor de San Andrés (UMSA)', value: 'UMSA' },
@@ -51,6 +55,12 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
         const parsedData = JSON.parse(savedData);
         if (parsedData && Object.keys(parsedData).length > 0) {
           updateFormData(parsedData);
+          
+          // Si la universidad guardada es "Otra", restaura el valor personalizado
+          if (parsedData.university && parsedData.university !== 'Otra' && 
+              !universities.some(uni => uni.value === parsedData.university)) {
+            setOtherUniversity(parsedData.university);
+          }
           
           // If there's a uniID URL already saved, update the preview state
           if (parsedData.uniID) {
@@ -142,6 +152,7 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
     
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFile(e.dataTransfer.files[0]);
+      setShowUploadModal(true);
     }
   };
 
@@ -161,7 +172,37 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
     e.preventDefault();
     if (e.target.files && e.target.files[0]) {
       handleFile(e.target.files[0]);
+      setShowUploadModal(true);
     }
+  };
+
+  const handleUniversityChange = (e) => {
+    const newValue = e.value;
+    
+    setSelectedUniversityType(newValue);
+    
+    if (newValue === 'Otra') {
+      updateFormData({
+        ...formData,
+        university: newValue
+      });
+      setOtherUniversity('');
+    } else {
+      updateFormData({
+        ...formData,
+        university: newValue
+      });
+      setOtherUniversity('');
+    }
+  };
+
+  const handleOtherUniversityChange = (e) => {
+    const value = e.target.value;
+    setOtherUniversity(value);
+    updateFormData({
+      ...formData,
+      university: value || 'Otra' // Mantiene 'Otra' si el campo está vacío
+    });
   };
 
   const validateForm = () => {
@@ -198,6 +239,10 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
       // Proceed to next step
       onNext();
     }
+  };
+
+  const handleIdCardBoxClick = () => {
+    setShowUploadModal(true);
   };
 
   // Custom footer for the upload dialog
@@ -242,13 +287,10 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
           </label>
           <div className="relative w-full">
             <Dropdown
-              id="university"
-              value={formData.university}
-              onChange={(e) => updateFormData({ 
-                ...formData,
-                university: e.value 
-              })}
-              options={universities}
+  id="university"
+  value={selectedUniversityType || formData.university}
+  onChange={handleUniversityChange}
+  options={universities}
               placeholder="Selecciona tu universidad"
               className={dropdownClassName}
               filter
@@ -257,16 +299,14 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
               panelClassName="border border-neutral-gray rounded-lg shadow-lg"
             />
           </div>
-          {formData.university === 'Otra' && (
-            <InputText
-              placeholder="Especifica tu universidad"
-              className="w-full border-2 border-neutral-gray rounded-lg p-2 mt-2"
-              onChange={(e) => updateFormData({ 
-                ...formData,
-                university: e.target.value 
-              })}
-            />
-          )}
+          {selectedUniversityType === 'Otra' && (
+  <InputText
+    placeholder="Especifica tu universidad"
+    className="w-full border-2 border-neutral-gray rounded-lg p-2 mt-2"
+    value={otherUniversity}
+    onChange={handleOtherUniversityChange}
+  />
+)}
         </div>
 
         <div className="flex flex-col space-y-2">
@@ -308,8 +348,12 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
             Carnet universitario <span className="text-red-500">*</span>
           </label>
           <div 
-            onClick={() => setShowUploadModal(true)}
+            ref={dropZoneRef}
+            onClick={handleIdCardBoxClick}
             className="border-2 border-dashed border-neutral-gray rounded-lg p-4 cursor-pointer hover:border-primary-dark hover:bg-primary-light/5 transition-all"
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
           >
             {formData.uniID ? (
               <div className="flex items-center space-x-4">
@@ -394,6 +438,7 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
         ) : (
           <div className="p-6 bg-white">
             <div
+              ref={fileInputRef}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
