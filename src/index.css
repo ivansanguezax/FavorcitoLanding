@@ -6,3 +6,32 @@
 * {
   font-family: 'Unbounded', sans-serif;
 }
+
+.stepper-custom .p-steps-item.p-highlight .p-steps-number {
+  background: #02533C !important;
+  color: white !important;
+}
+
+.stepper-custom .p-steps-item .p-menuitem-link .p-steps-title {
+  color: #02533C;
+}
+
+.stepper-custom .p-steps-item.p-highlight .p-steps-title {
+  color: #02533C;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .stepper-custom .p-steps-item .p-menuitem-link {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .stepper-custom .p-steps-item .p-steps-number {
+    margin: 0;
+  }
+  
+  .stepper-custom .p-steps .p-steps-item:before {
+    margin-top: 15px;
+  }
+}

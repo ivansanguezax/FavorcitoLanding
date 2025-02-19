@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import { FlipWords } from "../common/FlipWords";
 import { Button } from "primereact/button";
 
@@ -13,6 +14,12 @@ const words = [
 ];
 
 export const Hero = () => {
+  const navigate = useNavigate();
+
+  const handleStudentRegister = () => {
+    navigate('/register');
+  };
+
   return (
     <section className="w-full pt-24 md:pt-32 pb-12 relative overflow-hidden">
       <div className="container mx-auto px-4 md:px-8">
@@ -58,7 +65,7 @@ export const Hero = () => {
               className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
             >
               <Button
-                onClick={() => setShowModal(true)}
+                onClick={handleStudentRegister}
                 className="border-2 border-[#02533C] text-[#02533C] hover:bg-[#02533C] hover:text-white transition-all duration-300 px-6 py-2 rounded-full font-light flex items-center gap-2"
                 label="Soy estudiante"
                 icon="pi pi-arrow-up-right"
@@ -110,8 +117,3 @@ export const Hero = () => {
     </section>
   );
 };
-
-
-<div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-20 w-[36rem] max-w-[90%]">
-  <div className="bg-primary-dark px-8 py-3 rounded-full text-center"></div>
-</div>;
