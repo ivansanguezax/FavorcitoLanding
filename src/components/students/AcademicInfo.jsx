@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Dropdown } from 'primereact/dropdown';
-import { InputText } from 'primereact/inputtext';
-import { Button } from 'primereact/button';
-import PropTypes from 'prop-types';
-import { Dialog } from 'primereact/dialog';
-import { ProgressSpinner } from 'primereact/progressspinner';
-import { Toast } from 'primereact/toast';
-import { fileService } from '../../services/fileService';
+import { useState, useEffect, useRef } from "react";
+import { Dropdown } from "primereact/dropdown";
+import { InputText } from "primereact/inputtext";
+import { Button } from "primereact/button";
+import PropTypes from "prop-types";
+import { Dialog } from "primereact/dialog";
+import { ProgressSpinner } from "primereact/progressspinner";
+import { Toast } from "primereact/toast";
+import { fileService } from "../../services/fileService";
 
 const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -15,60 +15,69 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
   const [isUploading, setIsUploading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadSuccess, setUploadSuccess] = useState(false);
-  const [otherUniversity, setOtherUniversity] = useState('');
-  const [selectedUniversityType, setSelectedUniversityType] = useState('');
+  const [otherUniversity, setOtherUniversity] = useState("");
+  const [selectedUniversityType, setSelectedUniversityType] = useState("");
   const toast = useRef(null);
   const fileInputRef = useRef(null);
   const dropZoneRef = useRef(null);
 
   const universities = [
-    { label: 'Universidad Mayor de San Andrés (UMSA)', value: 'UMSA' },
-    { label: 'Universidad Mayor de San Simón (UMSS)', value: 'UMSS' },
-    { label: 'Universidad Católica Boliviana (UCB)', value: 'UCB' },
-    { label: 'Universidad Privada Boliviana (UPB)', value: 'UPB' },
-    { label: 'Universidad Mayor de San Francisco Xavier (USFX)', value: 'USFX' },
-    { label: 'Universidad Técnica de Oruro (UTO)', value: 'UTO' },
-    { label: 'Universidad Autónoma Gabriel René Moreno (UAGRM)', value: 'UAGRM' },
-    { label: 'Universidad Pública de El Alto (UPEA)', value: 'UPEA' },
-    { label: 'Universidad Nacional Siglo XX (UNSXX)', value: 'UNSXX' },
-    { label: 'Universidad Amazónica de Pando (UAP)', value: 'UAP' },
-    { label: 'Escuela Militar de Ingeniería (EMI)', value: 'EMI' },
-    { label: 'Universidad Andina Simón Bolívar (UASB)', value: 'UASB' },
-    { label: 'Universidad NUR', value: 'NUR' },
-    { label: 'Universidad del Valle (UNIVALLE)', value: 'UNIVALLE' },
-    { label: 'Otra', value: 'Otra' }
+    { label: "Universidad Mayor de San Andrés (UMSA)", value: "UMSA" },
+    { label: "Universidad Mayor de San Simón (UMSS)", value: "UMSS" },
+    { label: "Universidad Católica Boliviana (UCB)", value: "UCB" },
+    { label: "Universidad Privada Boliviana (UPB)", value: "UPB" },
+    {
+      label: "Universidad Mayor de San Francisco Xavier (USFX)",
+      value: "USFX",
+    },
+    { label: "Universidad Técnica de Oruro (UTO)", value: "UTO" },
+    {
+      label: "Universidad Autónoma Gabriel René Moreno (UAGRM)",
+      value: "UAGRM",
+    },
+    { label: "Universidad Pública de El Alto (UPEA)", value: "UPEA" },
+    { label: "Universidad Nacional Siglo XX (UNSXX)", value: "UNSXX" },
+    { label: "Universidad Amazónica de Pando (UAP)", value: "UAP" },
+    { label: "Escuela Militar de Ingeniería (EMI)", value: "EMI" },
+    { label: "Universidad Andina Simón Bolívar (UASB)", value: "UASB" },
+    { label: "Universidad NUR", value: "NUR" },
+    { label: "Universidad del Valle (UNIVALLE)", value: "UNIVALLE" },
+    { label: "Otra", value: "Otra" },
   ];
 
   const years = [
-    { label: '1er año', value: 1 },
-    { label: '2do año', value: 2 },
-    { label: '3er año', value: 3 },
-    { label: '4to año', value: 4 },
-    { label: '5to año', value: 5 }
+    { label: "1er año", value: 1 },
+    { label: "2do año", value: 2 },
+    { label: "3er año", value: 3 },
+    { label: "4to año", value: 4 },
+    { label: "5to año", value: 5 },
   ];
 
   useEffect(() => {
     // Load data from localStorage if available
-    const savedData = localStorage.getItem('studentFormData');
+    const savedData = localStorage.getItem("studentFormData");
     if (savedData) {
       try {
         const parsedData = JSON.parse(savedData);
         if (parsedData && Object.keys(parsedData).length > 0) {
           updateFormData(parsedData);
-          
+
           // Si la universidad guardada es "Otra", restaura el valor personalizado
-          if (parsedData.university && parsedData.university !== 'Otra' && 
-              !universities.some(uni => uni.value === parsedData.university)) {
+          if (
+            parsedData.university &&
+            parsedData.university !== "Otra" &&
+            !universities.some((uni) => uni.value === parsedData.university)
+          ) {
             setOtherUniversity(parsedData.university);
           }
-          
+
           // If there's a uniID URL already saved, update the preview state
           if (parsedData.uniID) {
-            setPreview('Archivo cargado previamente');
+            setPreview("Archivo cargado previamente");
           }
         }
       } catch (error) {
-        console.error('Error parsing saved form data:', error);
+        console.error("Error parsing saved form data:", error);
       }
     }
   }, []);
@@ -76,7 +85,7 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
   // Save to localStorage whenever formData changes
   useEffect(() => {
     if (Object.keys(formData).length > 0) {
-      localStorage.setItem('studentFormData', JSON.stringify(formData));
+      localStorage.setItem("studentFormData", JSON.stringify(formData));
     }
   }, [formData]);
 
@@ -84,7 +93,7 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
     if (file) {
       setSelectedFile(file);
       setUploadSuccess(false);
-      
+
       // Show preview of selected file
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -97,10 +106,10 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
   const confirmUpload = async () => {
     if (!selectedFile) {
       toast.current.show({
-        severity: 'warn',
-        summary: 'No hay archivo',
-        detail: 'Por favor selecciona un archivo primero',
-        life: 3000
+        severity: "warn",
+        summary: "No hay archivo",
+        detail: "Por favor selecciona un archivo primero",
+        life: 3000,
       });
       return;
     }
@@ -109,37 +118,37 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
       setIsUploading(true);
       // Generate unique ID for the file name
       const uniqueId = Date.now().toString();
-      
+
       // Convert to base64 and upload
       const base64String = await fileService.fileToBase64(selectedFile);
       const imageUrl = await fileService.uploadImage(base64String, uniqueId);
-      
+
       // Update form data with the returned URL
-      updateFormData({ 
+      updateFormData({
         ...formData,
-        uniID: imageUrl
+        uniID: imageUrl,
       });
-      
+
       setUploadSuccess(true);
-      
+
       // Wait 1.5 seconds to show success message before closing
       setTimeout(() => {
         setShowUploadModal(false);
         toast.current.show({
-          severity: 'success',
-          summary: 'Carga exitosa',
-          detail: 'Tu carnet universitario se ha cargado correctamente',
-          life: 3000
+          severity: "success",
+          summary: "Carga exitosa",
+          detail: "Tu carnet universitario se ha cargado correctamente",
+          life: 3000,
         });
       }, 1500);
-      
     } catch (error) {
-      console.error('Error uploading file:', error);
+      console.error("Error uploading file:", error);
       toast.current.show({
-        severity: 'error',
-        summary: 'Error en la carga',
-        detail: 'No se pudo cargar tu carnet universitario. Por favor, intenta nuevamente.',
-        life: 5000
+        severity: "error",
+        summary: "Error en la carga",
+        detail:
+          "No se pudo cargar tu carnet universitario. Por favor, intenta nuevamente.",
+        life: 5000,
       });
       setIsUploading(false);
     }
@@ -149,7 +158,7 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFile(e.dataTransfer.files[0]);
       setShowUploadModal(true);
@@ -178,21 +187,21 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
 
   const handleUniversityChange = (e) => {
     const newValue = e.value;
-    
+
     setSelectedUniversityType(newValue);
-    
-    if (newValue === 'Otra') {
+
+    if (newValue === "Otra") {
       updateFormData({
         ...formData,
-        university: newValue
+        university: newValue,
       });
-      setOtherUniversity('');
+      setOtherUniversity("");
     } else {
       updateFormData({
         ...formData,
-        university: newValue
+        university: newValue,
       });
-      setOtherUniversity('');
+      setOtherUniversity("");
     }
   };
 
@@ -201,17 +210,33 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
     setOtherUniversity(value);
     updateFormData({
       ...formData,
-      university: value || 'Otra' // Mantiene 'Otra' si el campo está vacío
+      university: value || "Otra", // Mantiene 'Otra' si el campo está vacío
     });
   };
 
+  const closeDialog = () => {
+    if (!isUploading) {
+      setShowUploadModal(false);
+      if (!uploadSuccess) {
+        setSelectedFile(null);
+        setPreview(null);
+      }
+    }
+  };
+
   const validateForm = () => {
-    if (!formData.university || !formData.degree || !formData.year || !formData.uniID) {
+    if (
+      !formData.university ||
+      !formData.degree ||
+      !formData.year ||
+      !formData.uniID
+    ) {
       toast.current.show({
-        severity: 'error',
-        summary: 'Campos incompletos',
-        detail: 'Por favor completa todos los campos obligatorios incluyendo la carga de tu carnet universitario',
-        life: 3000
+        severity: "error",
+        summary: "Campos incompletos",
+        detail:
+          "Por favor completa todos los campos obligatorios incluyendo la carga de tu carnet universitario",
+        life: 3000,
       });
       return false;
     }
@@ -227,21 +252,25 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
         university: formData.university,
         degree: formData.degree,
         year: formData.year,
-        uniID: formData.uniID
+        uniID: formData.uniID,
       };
-      
+
       // Update with improved data structure
       updateFormData(updatedFormData);
-      
+
       // Save to localStorage
-      localStorage.setItem('studentFormData', JSON.stringify(updatedFormData));
-      
+      localStorage.setItem("studentFormData", JSON.stringify(updatedFormData));
+
       // Proceed to next step
       onNext();
     }
   };
 
   const handleIdCardBoxClick = () => {
+    setSelectedFile(null);
+    setPreview(null);
+    setUploadSuccess(false);
+    setIsUploading(false);
     setShowUploadModal(true);
   };
 
@@ -249,18 +278,19 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
   const renderDialogFooter = () => {
     if (isUploading) return null;
     if (uploadSuccess) return null;
-    
+
     return (
       <div className="flex justify-end gap-3 p-3 bg-gray-50 rounded-b-lg">
-        <Button 
-          label="Cancelar" 
-          icon="pi pi-times" 
-          onClick={() => !isUploading && setShowUploadModal(false)}
+        <Button
+          label="Cancelar"
+          icon="pi pi-times"
+          onClick={() => !isUploading && closeDialog()}
           className="px-4 py-2 border border-neutral-gray text-neutral-dark hover:bg-gray-100 transition-colors rounded-lg"
         />
-        <Button 
-          label="Subir archivo" 
-          icon="pi pi-upload" 
+
+        <Button
+          label="Subir archivo"
+          icon="pi pi-upload"
           onClick={confirmUpload}
           className="px-4 py-2 bg-primary-dark text-white hover:bg-primary-dark/90 transition-colors rounded-lg"
           disabled={!selectedFile}
@@ -270,12 +300,13 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
   };
 
   // Custom styles for the dropdown
-  const dropdownClassName = "w-full border-2 border-neutral-gray rounded-lg focus:border-primary-dark";
+  const dropdownClassName =
+    "w-full border-2 border-neutral-gray rounded-lg focus:border-primary-dark";
 
   return (
     <div className="flex flex-col space-y-8">
       <Toast ref={toast} />
-      
+
       <h2 className="text-2xl font-semibold text-center text-neutral-dark">
         Información Académica
       </h2>
@@ -287,10 +318,10 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
           </label>
           <div className="relative w-full">
             <Dropdown
-  id="university"
-  value={selectedUniversityType || formData.university}
-  onChange={handleUniversityChange}
-  options={universities}
+              id="university"
+              value={selectedUniversityType || formData.university}
+              onChange={handleUniversityChange}
+              options={universities}
               placeholder="Selecciona tu universidad"
               className={dropdownClassName}
               filter
@@ -299,14 +330,14 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
               panelClassName="border border-neutral-gray rounded-lg shadow-lg"
             />
           </div>
-          {selectedUniversityType === 'Otra' && (
-  <InputText
-    placeholder="Especifica tu universidad"
-    className="w-full border-2 border-neutral-gray rounded-lg p-2 mt-2"
-    value={otherUniversity}
-    onChange={handleOtherUniversityChange}
-  />
-)}
+          {selectedUniversityType === "Otra" && (
+            <InputText
+              placeholder="Especifica tu universidad"
+              className="w-full border-2 border-neutral-gray rounded-lg p-2 mt-2"
+              value={otherUniversity}
+              onChange={handleOtherUniversityChange}
+            />
+          )}
         </div>
 
         <div className="flex flex-col space-y-2">
@@ -316,10 +347,12 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
           <Dropdown
             id="year"
             value={formData.year}
-            onChange={(e) => updateFormData({
-              ...formData, 
-              year: e.value 
-            })}
+            onChange={(e) =>
+              updateFormData({
+                ...formData,
+                year: e.value,
+              })
+            }
             options={years}
             placeholder="Selecciona tu año"
             className={dropdownClassName}
@@ -333,11 +366,13 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
           </label>
           <InputText
             id="degree"
-            value={formData.degree || ''}
-            onChange={(e) => updateFormData({
-              ...formData,
-              degree: e.target.value
-            })}
+            value={formData.degree || ""}
+            onChange={(e) =>
+              updateFormData({
+                ...formData,
+                degree: e.target.value,
+              })
+            }
             className="w-full border-2 border-neutral-gray rounded-lg p-2"
             placeholder="Ingresa tu carrera"
           />
@@ -347,7 +382,7 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
           <label className="text-neutral-dark font-medium">
             Carnet universitario <span className="text-red-500">*</span>
           </label>
-          <div 
+          <div
             ref={dropZoneRef}
             onClick={handleIdCardBoxClick}
             className="border-2 border-dashed border-neutral-gray rounded-lg p-4 cursor-pointer hover:border-primary-dark hover:bg-primary-light/5 transition-all"
@@ -361,14 +396,22 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
                   <i className="pi pi-check-circle text-2xl text-green-500"></i>
                 </div>
                 <div className="flex-1">
-                  <span className="text-neutral-dark font-medium">Archivo cargado correctamente</span>
-                  <p className="text-xs text-neutral-gray mt-1">Haz clic para cambiar el archivo si lo necesitas</p>
+                  <span className="text-neutral-dark font-medium">
+                    Archivo cargado correctamente
+                  </span>
+                  <p className="text-xs text-neutral-gray mt-1">
+                    Haz clic para cambiar el archivo si lo necesitas
+                  </p>
                 </div>
                 <Button
                   icon="pi pi-pencil"
                   className="p-button-rounded p-button-outlined p-button-sm"
                   onClick={(e) => {
                     e.stopPropagation();
+                    setSelectedFile(null);
+                    setPreview(null);
+                    setUploadSuccess(false);
+                    setIsUploading(false);
                     setShowUploadModal(true);
                   }}
                 />
@@ -376,7 +419,9 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
             ) : (
               <div className="flex flex-col items-center justify-center py-4">
                 <i className="pi pi-upload text-4xl text-neutral-gray mb-2"></i>
-                <p className="text-neutral-dark font-medium">Subir carnet universitario</p>
+                <p className="text-neutral-dark font-medium">
+                  Subir carnet universitario
+                </p>
                 <p className="text-sm text-neutral-gray mt-1">
                   Arrastra y suelta o haz clic para seleccionar
                 </p>
@@ -384,32 +429,33 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
             )}
           </div>
           <p className="text-xs text-neutral-gray mt-1">
-            * Si aún no tienes el carnet universitario, puedes subir tu factura de pago del semestre
+            * Si aún no tienes el carnet universitario, puedes subir tu factura
+            de pago del semestre
           </p>
         </div>
       </div>
 
-      <div className="bg-neutral-gray/10 px-6 py-4 flex flex-col sm:flex-row justify-between gap-3">
-        <Button
-          label="Atrás"
-          icon="pi pi-arrow-left"
-          onClick={onPrevious}
-          className="px-6 py-3 text-primary-dark border-2 border-primary-dark hover:bg-primary-dark hover:text-white transition-all duration-200"
-        />
-        <Button
-          label="Siguiente"
-          icon="pi pi-arrow-right"
-          onClick={handleNext}
-          className="px-6 py-3 text-primary-dark border-2 border-primary-dark hover:bg-primary-dark hover:text-white transition-all duration-200"
-        />
-      </div>
+      <div className=" px-3 py-4 flex flex-col-reverse sm:flex-row justify-between gap-3">
+  <Button
+    label="Atrás"
+    icon="pi pi-arrow-left"
+    onClick={onPrevious}
+    className="px-6 py-3 text-primary-dark border-2 border-primary-dark hover:bg-primary-dark hover:text-white transition-all duration-200"
+  />
+  <Button
+    label="Siguiente"
+    icon="pi pi-arrow-right"
+    onClick={handleNext}
+    className="px-6 py-3 text-primary-dark border-2 border-primary-dark hover:bg-primary-dark hover:text-white transition-all duration-200"
+  />
+</div>
+
 
       <Dialog
         visible={showUploadModal}
-        onHide={() => !isUploading && !uploadSuccess && setShowUploadModal(false)}
+        onHide={closeDialog}
         header={uploadSuccess ? null : "Subir carnet universitario"}
         footer={renderDialogFooter()}
-        className="w-full max-w-2xl overflow-hidden rounded-lg"
         closable={!isUploading && !uploadSuccess}
         showHeader={!uploadSuccess}
         contentClassName="p-0"
@@ -417,7 +463,11 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
       >
         {isUploading ? (
           <div className="flex flex-col items-center justify-center p-8 bg-white">
-            <ProgressSpinner style={{width: '60px', height: '60px'}} strokeWidth="4" animationDuration=".5s" />
+            <ProgressSpinner
+              style={{ width: "60px", height: "60px" }}
+              strokeWidth="4"
+              animationDuration=".5s"
+            />
             <p className="mt-6 text-center text-neutral-dark font-medium">
               Subiendo tu archivo, por favor espera...
             </p>
@@ -430,7 +480,9 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
             <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4">
               <i className="pi pi-check-circle text-4xl text-green-500"></i>
             </div>
-            <h3 className="text-xl font-medium text-green-800 mb-2">¡Archivo subido con éxito!</h3>
+            <h3 className="text-xl font-medium text-green-800 mb-2">
+              ¡Archivo subido con éxito!
+            </h3>
             <p className="text-center text-green-700 mb-6">
               Tu carnet universitario ha sido cargado correctamente
             </p>
@@ -443,7 +495,11 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               className={`relative border-2 border-dashed rounded-lg p-8 transition-colors
-                ${dragActive ? 'border-primary-dark bg-primary-light/10' : 'border-neutral-gray'}`}
+                ${
+                  dragActive
+                    ? "border-primary-dark bg-primary-light/10"
+                    : "border-neutral-gray"
+                }`}
             >
               <input
                 type="file"
@@ -453,12 +509,12 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
               />
               {preview ? (
                 <div className="flex flex-col items-center">
-                  {preview.startsWith('data:image') ? (
+                  {preview.startsWith("data:image") ? (
                     <div className="relative mb-4 p-2 bg-white shadow-md rounded-lg">
-                      <img 
-                        src={preview} 
-                        alt="Vista previa" 
-                        className="max-h-56 max-w-full object-contain rounded" 
+                      <img
+                        src={preview}
+                        alt="Vista previa"
+                        className="max-h-56 max-w-full object-contain rounded"
                       />
                       <div className="absolute top-2 right-2">
                         <Button
@@ -475,8 +531,12 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
                   ) : (
                     <div className="w-full p-6 mb-4 bg-gray-50 border border-neutral-gray rounded-lg text-center">
                       <i className="pi pi-file-pdf text-4xl text-primary-dark"></i>
-                      <p className="mt-3 text-neutral-dark font-medium">Archivo PDF seleccionado</p>
-                      <p className="mt-1 text-sm text-neutral-gray">{selectedFile?.name}</p>
+                      <p className="mt-3 text-neutral-dark font-medium">
+                        Archivo PDF seleccionado
+                      </p>
+                      <p className="mt-1 text-sm text-neutral-gray">
+                        {selectedFile?.name}
+                      </p>
                       <Button
                         icon="pi pi-times"
                         label="Cambiar archivo"
@@ -524,7 +584,8 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
                   <div className="mt-6 p-3 bg-blue-50 rounded-lg max-w-sm">
                     <p className="text-xs text-blue-700">
                       <i className="pi pi-info-circle mr-1"></i>
-                      Tu información académica es confidencial y solo será utilizada para verificar tu condición de estudiante.
+                      Tu información académica es confidencial y solo será
+                      utilizada para verificar tu condición de estudiante.
                     </p>
                   </div>
                 </div>
@@ -541,7 +602,7 @@ AcademicInfo.propTypes = {
   formData: PropTypes.object.isRequired,
   updateFormData: PropTypes.func.isRequired,
   onNext: PropTypes.func.isRequired,
-  onPrevious: PropTypes.func.isRequired
+  onPrevious: PropTypes.func.isRequired,
 };
 
 export default AcademicInfo;

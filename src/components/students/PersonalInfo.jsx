@@ -9,7 +9,7 @@ import { Dialog } from "primereact/dialog";
 import { ProgressSpinner } from "primereact/progressspinner";
 import PropTypes from "prop-types";
 import fileService from "../../services/fileService";
-
+import zonasData from "../../utils/zonas.json"; // Importamos las zonas desde el JSON
 
 const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
   const [minDate, setMinDate] = useState(new Date());
@@ -24,68 +24,25 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
   const fileInputRef = useRef(null);
   const dropZoneRef = useRef(null);
 
-  const cities = [
-    { label: "La Paz", value: "La Paz" },
-    { label: "El Alto", value: "El Alto" },
-    { label: "Cochabamba", value: "Cochabamba" },
-    { label: "Santa Cruz de la Sierra", value: "Santa Cruz" },
-    { label: "Oruro", value: "Oruro" },
-    { label: "Sucre", value: "Sucre" },
-    { label: "Potosí", value: "Potosí" },
-    { label: "Tarija", value: "Tarija" },
-    { label: "Trinidad", value: "Trinidad" },
-    { label: "Cobija", value: "Cobija" },
-  ];
+  // Definimos las ciudades usando las que están en el JSON
+  const cities = Object.keys(zonasData.Bolivia).map((city) => ({
+    label: city,
+    value: city,
+  }));
 
-  const provinces = {
-    "La Paz": [
-      { label: "Murillo", value: "Murillo" },
-      { label: "Omasuyos", value: "Omasuyos" },
-      { label: "Pacajes", value: "Pacajes" },
-      { label: "Camacho", value: "Camacho" },
-      { label: "Muñecas", value: "Muñecas" },
-    ],
-    "El Alto": [
-      { label: "Distrito 1", value: "Distrito 1" },
-      { label: "Distrito 2", value: "Distrito 2" },
-      { label: "Distrito 3", value: "Distrito 3" },
-    ],
-    Cochabamba: [
-      { label: "Cercado", value: "Cercado" },
-      { label: "Quillacollo", value: "Quillacollo" },
-      { label: "Chapare", value: "Chapare" },
-    ],
-    "Santa Cruz": [
-      { label: "Andrés Ibáñez", value: "Andrés Ibáñez" },
-      { label: "Warnes", value: "Warnes" },
-      { label: "Sara", value: "Sara" },
-    ],
-    Oruro: [
-      { label: "Cercado", value: "Cercado" },
-      { label: "Abaroa", value: "Abaroa" },
-    ],
-    Sucre: [
-      { label: "Oropeza", value: "Oropeza" },
-      { label: "Yamparáez", value: "Yamparáez" },
-    ],
-    Potosí: [
-      { label: "Tomás Frías", value: "Tomás Frías" },
-      { label: "Nor Chichas", value: "Nor Chichas" },
-    ],
-    Tarija: [
-      { label: "Cercado", value: "Cercado" },
-      { label: "Avilés", value: "Avilés" },
-    ],
-    Trinidad: [
-      { label: "Cercado", value: "Cercado" },
-      { label: "Marbán", value: "Marbán" },
-    ],
-    Cobija: [
-      { label: "Nicolás Suárez", value: "Nicolás Suárez" },
-      { label: "Manuripi", value: "Manuripi" },
-    ],
+  // Las zonas ahora se cargan desde el archivo JSON
+  const getZonasOptions = () => {
+    if (!formData.city) return [];
+
+    // Obtener las zonas para la ciudad seleccionada desde el JSON
+    const zonasForCity = zonasData.Bolivia[formData.city] || [];
+
+    // Convertir el array de strings a array de objetos para Dropdown
+    return zonasForCity.map((zona) => ({
+      label: zona,
+      value: zona,
+    }));
   };
-  
 
   useEffect(() => {
     // Calcular fecha mínima (exactamente 25 años atrás)
@@ -109,14 +66,14 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
         const parsedData = JSON.parse(savedData);
         if (parsedData && Object.keys(parsedData).length > 0) {
           updateFormData(parsedData);
-          
+
           // Si ya hay un QR cargado, actualizar el estado
           if (parsedData.qrCode) {
-            setPreview('Archivo cargado previamente');
+            setPreview("Archivo cargado previamente");
           }
         }
       } catch (error) {
-        console.error('Error parsing saved form data:', error);
+        console.error("Error parsing saved form data:", error);
       }
     }
   }, []);
@@ -128,12 +85,14 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
     }
   }, [formData]);
 
-  const getProvinceOptions = () => {
-    return formData.city ? provinces[formData.city] || [] : [];
-  };
-
   const formatDate = (date) => {
     if (!date) return null;
+
+    if (typeof date === "string" && date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      const [year, month, day] = date.split("-").map(Number);
+      return new Date(year, month - 1, day);
+    }
+
     const d = new Date(date);
     if (isNaN(d.getTime())) return null;
     return d;
@@ -156,10 +115,11 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
     const today = new Date();
     const age = today.getFullYear() - birthDate.getFullYear();
     const m = today.getMonth() - birthDate.getMonth();
-    const ageInYears = m < 0 || (m === 0 && today.getDate() < birthDate.getDate()) 
-      ? age - 1 
-      : age;
-      
+    const ageInYears =
+      m < 0 || (m === 0 && today.getDate() < birthDate.getDate())
+        ? age - 1
+        : age;
+
     if (ageInYears < 18 || ageInYears > 25) {
       showError("La edad debe estar entre 18 y 25 años");
       return false;
@@ -175,8 +135,9 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
       return false;
     }
 
-    if (!formData.province) {
-      showError("Provincia/Zona es requerida");
+    if (!formData.zona) {
+      // Cambiamos province por zona
+      showError("Zona es requerida");
       return false;
     }
 
@@ -199,24 +160,33 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
 
   const handleNext = () => {
     if (validatePersonalInfo()) {
-      const phoneRegex = /^\d{8}$/; // Cambiar la expresión regular
+      const phoneRegex = /^\d{8}$/;
 
       if (!formData.phone || !phoneRegex.test(formData.phone)) {
-        showError('Número de teléfono inválido (debe tener 8 dígitos)');
+        showError("Número de teléfono inválido (debe tener 8 dígitos)");
         return false;
+      }
+
+      // Arreglar el manejo de la fecha para evitar problemas de zona horaria
+      let formattedDate = formData.bornDate;
+
+      if (formData.bornDate instanceof Date) {
+        // Crear una fecha que preserva el día, mes y año exactos sin ajuste de zona horaria
+        const d = new Date(formData.bornDate);
+        formattedDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+          2,
+          "0"
+        )}-${String(d.getDate()).padStart(2, "0")}`;
       }
 
       const updatedData = {
         ...formData,
         fullName: formData.fullName,
-        bornDate:
-          formData.bornDate instanceof Date
-            ? formData.bornDate.toISOString().split("T")[0]
-            : formData.bornDate,
+        bornDate: formattedDate,
         email: formData.email,
         phone: formData.phone,
         city: formData.city,
-        province: formData.province,
+        zona: formData.zona, // Usamos zona en lugar de province
         address: formData.address,
       };
 
@@ -236,7 +206,7 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
     if (file) {
       setSelectedFile(file);
       setUploadSuccess(false);
-      
+
       // Show preview of selected file
       const reader = new FileReader();
       reader.onloadend = () => {
@@ -249,10 +219,10 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
   const confirmUpload = async () => {
     if (!selectedFile) {
       toast.current.show({
-        severity: 'warn',
-        summary: 'No hay archivo',
-        detail: 'Por favor selecciona un archivo primero',
-        life: 3000
+        severity: "warn",
+        summary: "No hay archivo",
+        detail: "Por favor selecciona un archivo primero",
+        life: 3000,
       });
       return;
     }
@@ -261,37 +231,37 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
       setIsUploading(true);
       // Generate unique ID for the file name
       const uniqueId = Date.now().toString();
-      
+
       // Convert to base64 and upload
       const base64String = await fileService.fileToBase64(selectedFile);
       const imageUrl = await fileService.uploadImage(base64String, uniqueId);
-      
+
       // Update form data with the returned URL
-      updateFormData({ 
+      updateFormData({
         ...formData,
-        qrCode: imageUrl
+        qrCode: imageUrl,
       });
-      
+
       setUploadSuccess(true);
-      
+
       // Wait 1.5 seconds to show success message before closing
       setTimeout(() => {
         setShowUploadModal(false);
         toast.current.show({
-          severity: 'success',
-          summary: 'Carga exitosa',
-          detail: 'Tu código QR se ha cargado correctamente',
-          life: 3000
+          severity: "success",
+          summary: "Carga exitosa",
+          detail: "Tu código QR se ha cargado correctamente",
+          life: 3000,
         });
       }, 1500);
-      
     } catch (error) {
-      console.error('Error uploading file:', error);
+      console.error("Error uploading file:", error);
       toast.current.show({
-        severity: 'error',
-        summary: 'Error en la carga',
-        detail: 'No se pudo cargar tu código QR. Por favor, intenta nuevamente.',
-        life: 5000
+        severity: "error",
+        summary: "Error en la carga",
+        detail:
+          "No se pudo cargar tu código QR. Por favor, intenta nuevamente.",
+        life: 5000,
       });
       setIsUploading(false);
     }
@@ -301,7 +271,7 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       handleFile(e.dataTransfer.files[0]);
       // Abre el popup modal para mostrar la vista previa
@@ -338,18 +308,18 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
   const renderDialogFooter = () => {
     if (isUploading) return null;
     if (uploadSuccess) return null;
-    
+
     return (
       <div className="flex justify-end gap-3 p-3 bg-gray-50 rounded-b-lg">
-        <Button 
-          label="Cancelar" 
-          icon="pi pi-times" 
+        <Button
+          label="Cancelar"
+          icon="pi pi-times"
           onClick={() => !isUploading && setShowUploadModal(false)}
           className="px-4 py-2 border border-neutral-gray text-neutral-dark hover:bg-gray-100 transition-colors rounded-lg"
         />
-        <Button 
-          label="Subir código QR" 
-          icon="pi pi-upload" 
+        <Button
+          label="Subir código QR"
+          icon="pi pi-upload"
           onClick={confirmUpload}
           className="px-4 py-2 bg-primary-dark text-white hover:bg-primary-dark/90 transition-colors rounded-lg"
           disabled={!selectedFile}
@@ -359,7 +329,8 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
   };
 
   // Custom styles for dropdowns
-  const dropdownClassName = "w-full border-2 border-neutral-gray rounded-lg focus:border-primary-dark";
+  const dropdownClassName =
+    "w-full border-2 border-neutral-gray rounded-lg focus:border-primary-dark";
 
   return (
     <div className="flex flex-col space-y-8">
@@ -393,29 +364,29 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
             Fecha de nacimiento <span className="text-red-500">*</span>
           </label>
           <div className="relative">
-          <Calendar
-  id="bornDate"
-  value={formatDate(formData.bornDate)}
-  onChange={(e) =>
-    updateFormData({
-      ...formData,
-      bornDate: e.value,
-    })
-  }
-  showIcon
-  minDate={minDate}
-  maxDate={maxDate}
-  dateFormat="dd/mm/yy"
-  className="w-full"
-  inputClassName="w-full border-2 border-neutral-gray rounded-lg px-4 py-2.5 h-12"
-  panelClassName="border border-neutral-gray rounded-lg shadow-lg p-2"
-  view="date"
-  viewDate={new Date(new Date().getFullYear() - 20, 0, 1)}
-  yearNavigator
-  yearRange={`${new Date().getFullYear() - 25}:${
-    new Date().getFullYear() - 18
-  }`}
-/>
+            <Calendar
+              id="bornDate"
+              value={formatDate(formData.bornDate)}
+              onChange={(e) =>
+                updateFormData({
+                  ...formData,
+                  bornDate: e.value,
+                })
+              }
+              showIcon
+              minDate={minDate}
+              maxDate={maxDate}
+              dateFormat="dd/mm/yy"
+              className="w-full"
+              inputClassName="w-full border-2 border-neutral-gray rounded-lg px-4 py-2.5 h-12"
+              panelClassName="border border-neutral-gray rounded-lg shadow-lg p-2"
+              view="date"
+              viewDate={new Date(new Date().getFullYear() - 20, 0, 1)}
+              yearNavigator
+              yearRange={`${new Date().getFullYear() - 25}:${
+                new Date().getFullYear() - 18
+              }`}
+            />
           </div>
         </div>
 
@@ -451,7 +422,7 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
                 phone: e.target.value,
               })
             }
-            mask="99999999" 
+            mask="99999999"
             placeholder="75528888"
             className="w-full border-2 border-neutral-gray rounded-lg px-4 py-2.5 h-12"
           />
@@ -468,7 +439,7 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
               updateFormData({
                 ...formData,
                 city: e.value,
-                province: null, // Reset province when city changes
+                zona: null, // Reset zona when city changes
               })
             }
             options={cities}
@@ -482,25 +453,28 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
         </div>
 
         <div className="flex flex-col space-y-2">
-          <label htmlFor="province" className="text-neutral-dark font-medium">
-            Provincia/Zona <span className="text-red-500">*</span>
+          <label htmlFor="zona" className="text-neutral-dark font-medium">
+            Zona <span className="text-red-500">*</span>
           </label>
           <Dropdown
-            id="province"
-            value={formData.province || ""}
+            id="zona"
+            value={formData.zona || ""} // Cambiamos province por zona
             onChange={(e) =>
               updateFormData({
                 ...formData,
-                province: e.value,
+                zona: e.value, // Cambiamos province por zona
               })
             }
-            options={getProvinceOptions()}
+            options={getZonasOptions()}
             placeholder={
               formData.city
-                ? "Selecciona tu provincia"
+                ? "Selecciona tu zona"
                 : "Primero selecciona una ciudad"
             }
             className={dropdownClassName}
+            filter={true}
+            filterInputAutoFocus={true}
+            showFilterClear={true}
             panelClassName="border border-neutral-gray rounded-lg shadow-lg"
             disabled={!formData.city}
           />
@@ -532,7 +506,7 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
           <label className="text-neutral-dark font-medium">
             QR de pago <span className="text-neutral-gray">(opcional)</span>
           </label>
-          <div 
+          <div
             ref={dropZoneRef}
             onClick={handleQRBoxClick}
             className="border-2 border-dashed border-neutral-gray rounded-lg p-4 cursor-pointer hover:border-primary-dark hover:bg-primary-light/5 transition-all"
@@ -546,8 +520,12 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
                   <i className="pi pi-credit-card text-2xl text-green-500"></i>
                 </div>
                 <div className="flex-1">
-                  <span className="text-neutral-dark font-medium">Código QR cargado correctamente</span>
-                  <p className="text-xs text-neutral-gray mt-1">Haz clic para cambiar el código si lo necesitas</p>
+                  <span className="text-neutral-dark font-medium">
+                    Código QR cargado correctamente
+                  </span>
+                  <p className="text-xs text-neutral-gray mt-1">
+                    Haz clic para cambiar el código si lo necesitas
+                  </p>
                 </div>
                 <Button
                   icon="pi pi-pencil"
@@ -561,7 +539,9 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
             ) : (
               <div className="flex flex-col items-center justify-center py-4">
                 <i className="pi pi-credit-card text-4xl text-neutral-gray mb-2"></i>
-                <p className="text-neutral-dark font-medium">Subir QR para recibir pagos</p>
+                <p className="text-neutral-dark font-medium">
+                  Subir QR para recibir pagos
+                </p>
                 <p className="text-sm text-neutral-gray mt-1">
                   Arrastra y suelta o haz clic para seleccionar
                 </p>
@@ -569,12 +549,13 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
             )}
           </div>
           <p className="text-xs text-neutral-gray mt-1">
-            * Sube el QR de tu cuenta bancaria o billetera móvil para recibir pagos por tus servicios
+            * Sube el QR de tu cuenta bancaria o billetera móvil para recibir
+            pagos por tus servicios
           </p>
         </div>
       </div>
 
-      <div className="bg-neutral-gray/10 px-6 py-4 flex flex-col sm:flex-row justify-between gap-3">
+      <div className=" px-3 py-4 flex flex-col-reverse sm:flex-row justify-between gap-3">
         <Button
           label="Atrás"
           icon="pi pi-arrow-left"
@@ -591,7 +572,9 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
 
       <Dialog
         visible={showUploadModal}
-        onHide={() => !isUploading && !uploadSuccess && setShowUploadModal(false)}
+        onHide={() =>
+          !isUploading && !uploadSuccess && setShowUploadModal(false)
+        }
         header={uploadSuccess ? null : "Subir código QR de pago"}
         footer={renderDialogFooter()}
         className="w-full max-w-2xl overflow-hidden rounded-lg"
@@ -602,7 +585,11 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
       >
         {isUploading ? (
           <div className="flex flex-col items-center justify-center p-8 bg-white">
-            <ProgressSpinner style={{width: '60px', height: '60px'}} strokeWidth="4" animationDuration=".5s" />
+            <ProgressSpinner
+              style={{ width: "60px", height: "60px" }}
+              strokeWidth="4"
+              animationDuration=".5s"
+            />
             <p className="mt-6 text-center text-neutral-dark font-medium">
               Subiendo tu código QR, por favor espera...
             </p>
@@ -615,7 +602,9 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
             <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4">
               <i className="pi pi-check-circle text-4xl text-green-500"></i>
             </div>
-            <h3 className="text-xl font-medium text-green-800 mb-2">¡Código QR subido con éxito!</h3>
+            <h3 className="text-xl font-medium text-green-800 mb-2">
+              ¡Código QR subido con éxito!
+            </h3>
             <p className="text-center text-green-700 mb-6">
               Tu código de pago ha sido cargado correctamente
             </p>
@@ -628,7 +617,11 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               className={`relative border-2 border-dashed rounded-lg p-8 transition-colors
-                ${dragActive ? 'border-primary-dark bg-primary-light/10' : 'border-neutral-gray'}`}
+                ${
+                  dragActive
+                    ? "border-primary-dark bg-primary-light/10"
+                    : "border-neutral-gray"
+                }`}
             >
               <input
                 type="file"
@@ -639,10 +632,10 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
               {preview ? (
                 <div className="flex flex-col items-center">
                   <div className="relative mb-4 p-2 bg-white shadow-md rounded-lg">
-                    <img 
-                      src={preview} 
-                      alt="Vista previa" 
-                      className="max-h-56 max-w-full object-contain rounded" 
+                    <img
+                      src={preview}
+                      alt="Vista previa"
+                      className="max-h-56 max-w-full object-contain rounded"
                     />
                     <div className="absolute top-2 right-2">
                       <Button
@@ -653,10 +646,11 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
                           setPreview(null);
                           setSelectedFile(null);
                           toast.current.show({
-                            severity: 'info',
-                            summary: 'Archivo eliminado',
-                            detail: 'Asegúrate de mostrar el lado donde está tu código QR cuando agregues un nuevo documento',
-                            life: 5000
+                            severity: "info",
+                            summary: "Archivo eliminado",
+                            detail:
+                              "Asegúrate de mostrar el lado donde está tu código QR cuando agregues un nuevo documento",
+                            life: 5000,
                           });
                         }}
                       />
@@ -693,7 +687,8 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
                   <div className="mt-6 p-3 bg-blue-50 rounded-lg max-w-sm">
                     <p className="text-xs text-blue-700">
                       <i className="pi pi-info-circle mr-1"></i>
-                      Asegúrate de que tu código QR es legible y corresponde a la cuenta donde quieres recibir los pagos
+                      Asegúrate de que tu código QR es legible y corresponde a
+                      la cuenta donde quieres recibir los pagos
                     </p>
                   </div>
                 </div>
