@@ -23,7 +23,7 @@ const Verification = ({ formData, onPrevious, onSubmit }) => {
   useEffect(() => {
     let timer;
     if (showSuccessDialog && countdown > 0) {
-      timer = setTimeout(() => setCountdown(countdown - 1), 3000);
+      timer = setTimeout(() => setCountdown(countdown - 1), 1000);
     }
     return () => clearTimeout(timer);
   }, [showSuccessDialog, countdown]);
@@ -190,7 +190,6 @@ const Verification = ({ formData, onPrevious, onSubmit }) => {
     </Dialog>
   );
   
-  // Diálogo de éxito completamente rediseñado
   const renderSuccessDialog = () => (
     <Dialog
       visible={showSuccessDialog}
@@ -266,7 +265,7 @@ const Verification = ({ formData, onPrevious, onSubmit }) => {
           </div>
         </div>
         
-        {/* Pie del diálogo con contador */}
+        {/* Pie del diálogo con contador de 30 segundos */}
         <div className="bg-gray-50 py-4 px-8 border-t border-gray-100">
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-500">
@@ -284,7 +283,7 @@ const Verification = ({ formData, onPrevious, onSubmit }) => {
                     strokeWidth="10"
                   />
                   
-                  {/* Círculo de progreso animado */}
+                  {/* Círculo de progreso animado - ajustado para 30 segundos */}
                   <circle 
                     cx="50" cy="50" r="40" 
                     fill="none" 
@@ -292,7 +291,7 @@ const Verification = ({ formData, onPrevious, onSubmit }) => {
                     strokeWidth="10"
                     strokeLinecap="round"
                     strokeDasharray="251.2"
-                    strokeDashoffset={251.2 * (1 - countdown / 10)}
+                    strokeDashoffset={251.2 * (1 - countdown / 30)}
                     transform="rotate(-90 50 50)"
                     style={{
                       transition: "stroke-dashoffset 1s linear"
