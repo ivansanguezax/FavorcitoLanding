@@ -37,7 +37,6 @@ const fixedCategories = [
     description: "Cuidado y atención de mascotas",
     popular: true
   },
-
 ]
 
 const dynamicCategories = [
@@ -137,6 +136,22 @@ const dynamicCategories = [
 export const Categories = () => {
   const [showAll, setShowAll] = useState(false)
   const [shuffledCategories, setShuffledCategories] = useState([])
+  const [isMobile, setIsMobile] = useState(false)
+  
+  useEffect(() => {
+    // Función para verificar si es móvil
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 640) // sm breakpoint en Tailwind (640px)
+    }
+    
+    // Verificar al inicio
+    checkMobile()
+    
+    // Listener para cambios de tamaño
+    window.addEventListener('resize', checkMobile)
+    
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
   
   useEffect(() => {
     // Separar la categoría "Otros"
@@ -154,9 +169,21 @@ export const Categories = () => {
     setShuffledCategories([...shuffled, othersCategory])
   }, [])
 
-  const visibleCategories = showAll 
-    ? [...fixedCategories, ...shuffledCategories]
-    : fixedCategories
+  // Decide qué categorías mostrar
+  let visibleCategories;
+  
+  if (showAll) {
+    // Si showAll es true, mostrar todas las categorías independientemente del dispositivo
+    visibleCategories = [...fixedCategories, ...shuffledCategories];
+  } else {
+    if (isMobile) {
+      // En móvil cuando no está expandido, mostrar 6 categorías (las 5 fijas + la primera de las dinámicas)
+      visibleCategories = [...fixedCategories, shuffledCategories[0]];
+    } else {
+      // En desktop cuando no está expandido, mostrar solo las 5 fijas
+      visibleCategories = fixedCategories;
+    }
+  }
 
   return (
     <section className="py-16 px-4 md:px-8 bg-neutral-light">

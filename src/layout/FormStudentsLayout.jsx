@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 // Eliminamos la importación de Helmet
@@ -143,7 +143,7 @@ const Stepper = ({ activeIndex, onStepClick }) => {
           <img
             src="https://res.cloudinary.com/dfgjenml4/image/upload/v1737657583/logoDark_uvqsz9.png"
             alt="Favorcito Logo"
-            className="h-10 object-contain transition-all duration-300 hover:opacity-90"
+            className="h-8 object-contain transition-all duration-300 hover:opacity-90" // Reducido el tamaño
           />
         </div>
 
@@ -246,9 +246,11 @@ export const FormStudentsLayout = () => {
   const [width, setWidth] = useState(window.innerWidth);
   const isMobile = width <= 1000;
   const [isLoading, setIsLoading] = useState(true);
+  const [contentVisible, setContentVisible] = useState(false); // Control de visibilidad del contenido
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [pageKey, setPageKey] = useState(Date.now());
   const [showExitConfirmation, setShowExitConfirmation] = useState(false);
+  const unloadAttempted = useRef(false);
 
   // Efecto para detectar cuando la página se carga nuevamente (después de navegación)
   useEffect(() => {
@@ -258,34 +260,57 @@ export const FormStudentsLayout = () => {
   // Efecto para manejar el evento de salida
   useEffect(() => {
     const handleBeforeUnload = (e) => {
-      const message = "¿Estás seguro que deseas salir? Perderás tu progreso en el registro.";
-      e.returnValue = message;
-      return message;
+      if (activeIndex < 3) {
+        const message = "¿Estás seguro que deseas salir? Perderás tu progreso en el registro.";
+        e.returnValue = message;
+        unloadAttempted.current = true;
+        return message;
+      }
+    };
+
+    // Interceptar cambios de ruta dentro de la app
+    const handleRouteChange = (e) => {
+      if (activeIndex < 3 && location.pathname.includes('/students/form')) {
+        e.preventDefault();
+        setShowExitConfirmation(true);
+      }
     };
 
     // Sólo añadir el evento si no estamos en el paso final
     if (activeIndex < 3) {
       window.addEventListener('beforeunload', handleBeforeUnload);
+      window.addEventListener('popstate', handleRouteChange);
     }
 
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handleRouteChange);
     };
-  }, [activeIndex]);
+  }, [activeIndex, location.pathname]);
 
   useEffect(() => {
     const handleResize = () => setWidth(window.innerWidth);
     window.addEventListener("resize", handleResize);
     
-    // Simular tiempo de carga
-    const timer = setTimeout(() => {
+    // Asegurar que el loader se muestre primero
+    document.body.style.overflow = 'hidden'; // Prevenir scroll durante carga
+    
+    // Secuencia de carga correcta
+    const loadingTimer = setTimeout(() => {
       setIsLoading(false);
-      setShowOnboarding(true);
+      
+      // Solo mostrar el contenido después de que el loader desaparezca
+      setTimeout(() => {
+        setContentVisible(true);
+        setShowOnboarding(true);
+        document.body.style.overflow = ''; // Restaurar scroll
+      }, 300);
     }, 2500);
     
     return () => {
       window.removeEventListener("resize", handleResize);
-      clearTimeout(timer);
+      clearTimeout(loadingTimer);
+      document.body.style.overflow = '';
     };
   }, [pageKey]);
 
@@ -438,7 +463,6 @@ export const FormStudentsLayout = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-100" key={pageKey}>
-
       {/* Loader */}
       <AnimatePresence>
         {isLoading && <Loader />}
@@ -461,103 +485,117 @@ export const FormStudentsLayout = () => {
         )}
       </AnimatePresence>
 
-      {/* Solo en móvil: Header con logo y stepper horizontal */}
-      {isMobile && (
-        <header className="w-full bg-white border-b border-neutral-gray/10 sticky top-0 z-40 shadow-sm">
-          <div className="container mx-auto px-4 py-3">
-            {/* Logo section */}
-            <div className="flex justify-between items-center py-2 border-b border-neutral-gray/10">
-              <button 
-                onClick={handleExitAttempt}
-                className="text-neutral-gray hover:text-neutral-dark transition-colors"
-              >
-                <i className="pi pi-arrow-left text-lg"></i>
-              </button>
-              <img
-                src="https://res.cloudinary.com/dfgjenml4/image/upload/v1737657583/logoDark_uvqsz9.png"
-                alt="Favorcito Logo"
-                className="h-8 object-contain"
-              />
-              <div className="w-8"></div> {/* Espacio para mantener centrado el logo */}
-            </div>
-            <Stepper
-              activeIndex={activeIndex}
-              onStepClick={(index) => index < activeIndex && setActiveIndex(index)}
-            />
-          </div>
-        </header>
-      )}
-
-      {/* Contenido principal */}
-      <main className="flex-1 flex">
-        <div className="w-full flex h-full">
-          {/* Layout para desktop */}
-          {!isMobile ? (
-            <div className="flex w-full h-full">
-              {/* Stepper vertical en desktop */}
-              <div className="w-80 bg-white border-r border-neutral-gray/10 flex-shrink-0 fixed h-screen overflow-hidden shadow-md">
-                {/* Botón de salir en desktop */}
-                <button 
-                  onClick={handleExitAttempt}
-                  className="absolute top-6 left-6 text-neutral-gray hover:text-neutral-dark transition-colors z-10"
-                >
-                  <i className="pi pi-arrow-left text-lg"></i>
-                </button>
-                
+      {/* Contenido principal - Solo visible después de cargar */}
+      {contentVisible && (
+        <>
+          {/* Solo en móvil: Header con logo y stepper horizontal */}
+          {isMobile && (
+            <header className="w-full bg-white border-b border-neutral-gray/10 sticky top-0 z-40 shadow-sm">
+              <div className="container mx-auto px-4 py-3">
+                {/* Logo section */}
+                <div className="flex items-center py-2 border-b border-neutral-gray/10">
+                  {/* Botón atrás más visible y alineado a la izquierda */}
+                  <button 
+                    onClick={handleExitAttempt}
+                    className="flex items-center justify-center bg-primary-dark text-white hover:bg-primary-dark/90 transition-all duration-200 p-2 rounded-full shadow-md"
+                  >
+                    <i className="pi pi-arrow-left text-lg"></i>
+                  </button>
+                  
+                  {/* Logo centrado */}
+                  <div className="flex-1 flex justify-center">
+                    <img
+                      src="https://res.cloudinary.com/dfgjenml4/image/upload/v1737657583/logoDark_uvqsz9.png"
+                      alt="Favorcito Logo"
+                      className="h-7 object-contain"
+                    />
+                  </div>
+                  
+                  {/* Espacio reservado para mantener equilibrio */}
+                  <div className="w-8"></div>
+                </div>
                 <Stepper
                   activeIndex={activeIndex}
                   onStepClick={(index) => index < activeIndex && setActiveIndex(index)}
                 />
               </div>
+            </header>
+          )}
 
-              {/* Contenido principal */}
-              <div className="flex-1 px-3 py-4 ml-80">
-                <div className="max-w-3xl mx-auto">
-                  <div className="bg-white rounded-lg shadow-sm border border-neutral-gray/10 p-8 h-full">
+          {/* Contenido principal */}
+          <main className="flex-1 flex">
+            <div className="w-full flex h-full">
+              {/* Layout para desktop */}
+              {!isMobile ? (
+                <div className="flex w-full h-full">
+                  {/* Stepper vertical en desktop */}
+                  <div className="w-80 bg-white border-r border-neutral-gray/10 flex-shrink-0 fixed h-screen overflow-hidden shadow-md">
+                    {/* Botón de salir en desktop - Rediseñado */}
+                    <div className="flex justify-between items-center px-6 pt-6 pb-2">
+                      <button 
+                        onClick={handleExitAttempt}
+                        className="flex items-center justify-center bg-primary-dark text-white hover:bg-primary-dark/90 transition-all duration-200 w-10 h-10 rounded-full shadow-md"
+                      >
+                        <i className="pi pi-arrow-left text-lg"></i>
+                      </button>
+                    </div>
+                    
+                    <Stepper
+                      activeIndex={activeIndex}
+                      onStepClick={(index) => index < activeIndex && setActiveIndex(index)}
+                    />
+                  </div>
+
+                  {/* Contenido principal */}
+                  <div className="flex-1 px-3 py-4 ml-80">
+                    <div className="max-w-3xl mx-auto">
+                      <div className="bg-white rounded-lg shadow-sm border border-neutral-gray/10 p-8 h-full">
+                        <AnimatePresence mode="wait">
+                          <motion.div
+                            key={activeIndex}
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            transition={{
+                              type: "spring",
+                              stiffness: 300,
+                              damping: 30,
+                            }}
+                            className="pb-6"
+                          >
+                            {renderStep()}
+                          </motion.div>
+                        </AnimatePresence>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                // Layout para móvil
+                <div className="w-full p-4">
+                  <div className="bg-white rounded-lg shadow-sm border border-neutral-gray/10 p-5 h-full">
                     <AnimatePresence mode="wait">
                       <motion.div
                         key={activeIndex}
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        exit={{ opacity: 0, x: -20 }}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -20 }}
                         transition={{
                           type: "spring",
                           stiffness: 300,
                           damping: 30,
                         }}
-                        className="pb-6"
                       >
                         {renderStep()}
                       </motion.div>
                     </AnimatePresence>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
-          ) : (
-            // Layout para móvil
-            <div className="w-full p-4">
-              <div className="bg-white rounded-lg shadow-sm border border-neutral-gray/10 p-5 h-full">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={activeIndex}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -20 }}
-                    transition={{
-                      type: "spring",
-                      stiffness: 300,
-                      damping: 30,
-                    }}
-                  >
-                    {renderStep()}
-                  </motion.div>
-                </AnimatePresence>
-              </div>
-            </div>
-          )}
-        </div>
-      </main>
+          </main>
+        </>
+      )}
     </div>
   );
 };
