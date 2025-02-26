@@ -2,12 +2,14 @@ import { useEffect, useState } from "react";
 import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import PropTypes from "prop-types";
+import { useNavigate } from "react-router-dom";
 
 const Verification = ({ formData, onPrevious, onSubmit }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showProcessingDialog, setShowProcessingDialog] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
   const [countdown, setCountdown] = useState(30);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const savedData = localStorage.getItem("studentFormData");
@@ -24,9 +26,15 @@ const Verification = ({ formData, onPrevious, onSubmit }) => {
     let timer;
     if (showSuccessDialog && countdown > 0) {
       timer = setTimeout(() => setCountdown(countdown - 1), 1000);
+    } else if (showSuccessDialog && countdown === 0) {
+      // Cerrar el diálogo
+      setShowSuccessDialog(false);
+      // Redirigir al home
+      navigate("/");
     }
+
     return () => clearTimeout(timer);
-  }, [showSuccessDialog, countdown]);
+  }, [showSuccessDialog, countdown, navigate]);
 
   const formatDate = (dateString) => {
     if (!dateString) return "No especificado";
@@ -62,29 +70,6 @@ const Verification = ({ formData, onPrevious, onSubmit }) => {
     }
   };
 
-  // Mostrar solo los días con horarios asignados
-  const getAvailabilityHighlights = () => {
-    if (
-      !formData.availability ||
-      Object.keys(formData.availability).length === 0
-    ) {
-      return "No especificada";
-    }
-
-    // Filtrar solo días con horarios asignados
-    const daysWithSchedules = Object.entries(formData.availability)
-      .filter(([_, times]) => times.length > 0)
-      .map(([day]) => day)
-      .slice(0, 3); // Mostrar solo los primeros 3 días
-
-    if (daysWithSchedules.length === 0) return "No especificada";
-
-    const displayText = daysWithSchedules.join(", ");
-    const hasMore = Object.keys(formData.availability).length > 3;
-
-    return hasMore ? `${displayText} y más` : displayText;
-  };
-
   // Obtener solo las primeras N habilidades
   const getSkillsHighlights = () => {
     if (!formData.skills || formData.skills.length === 0) {
@@ -99,6 +84,52 @@ const Verification = ({ formData, onPrevious, onSubmit }) => {
       : displaySkills.join(", ");
   };
 
+  const getDetailedAvailability = () => {
+    if (
+      !formData.availability ||
+      Object.keys(formData.availability).length === 0
+    ) {
+      return <p className="pl-6 text-neutral-dark">No especificada</p>;
+    }
+
+    // Filtramos solo los días que tienen horarios asignados
+    const daysWithSchedules = Object.entries(formData.availability).filter(
+      ([times]) => times && times.length > 0
+    );
+
+    if (daysWithSchedules.length === 0) {
+      return <p className="pl-6 text-neutral-dark">No especificada</p>;
+    }
+
+    return (
+      <div className="pl-6 space-y-2">
+        {daysWithSchedules.map(([day, times]) => (
+          <div
+            key={day}
+            className="border border-gray-100 rounded-lg p-3 bg-white shadow-sm"
+          >
+            <div className="flex items-center mb-2">
+              <div className="h-8 w-8 rounded-full bg-primary-dark/10 flex items-center justify-center mr-2">
+                <i className="pi pi-calendar text-primary-dark text-sm"></i>
+              </div>
+              <h5 className="font-medium text-neutral-dark">{day}</h5>
+            </div>
+            <div className="flex flex-wrap gap-1 pl-10">
+              {times.map((time, index) => (
+                <span
+                  key={index}
+                  className="text-xs font-medium px-2 py-1 rounded-md bg-gray-50 text-gray-700 border border-gray-100"
+                >
+                  {time.label || time}
+                </span>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   // Handle the submission with better UI flow
   const handleSubmitWithFeedback = async () => {
     // Prevent multiple submissions
@@ -110,13 +141,13 @@ const Verification = ({ formData, onPrevious, onSubmit }) => {
     try {
       await onSubmit();
 
-      // Show success after processing (with small delay for better UX)
       setTimeout(() => {
         setShowProcessingDialog(false);
         setShowSuccessDialog(true);
+        setCountdown(30);
       }, 1500);
     } catch (error) {
-      // In case of error, hide processing dialog and allow retry
+      console.error("Error al enviar la solicitud:", error);
       setShowProcessingDialog(false);
       setIsSubmitting(false);
     }
@@ -129,12 +160,13 @@ const Verification = ({ formData, onPrevious, onSubmit }) => {
       showHeader={false}
       className="border-none"
       contentClassName="p-0"
-      style={{ 
-        width: "100%", 
+      style={{
+        width: "100%",
         maxWidth: "450px",
         borderRadius: "16px",
         overflow: "hidden",
-        boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05)"
+        boxShadow:
+          "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05)",
       }}
     >
       <div className="bg-white py-10 px-8 flex flex-col items-center">
@@ -142,10 +174,10 @@ const Verification = ({ formData, onPrevious, onSubmit }) => {
         <div className="relative w-20 h-20 mb-8">
           {/* Anillo exterior */}
           <div className="absolute inset-0 border-4 border-gray-100 rounded-full"></div>
-          
+
           {/* Anillo de progreso giratorio */}
           <div className="absolute inset-0 border-4 border-transparent border-t-primary-dark rounded-full animate-spin"></div>
-          
+
           {/* Círculo central */}
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="w-12 h-12 bg-primary-dark/5 rounded-full flex items-center justify-center">
@@ -153,29 +185,29 @@ const Verification = ({ formData, onPrevious, onSubmit }) => {
             </div>
           </div>
         </div>
-        
+
         <h3 className="text-2xl font-semibold text-gray-800 mb-3 text-center">
           Procesando
         </h3>
-        
+
         <p className="text-center text-gray-600 mb-6 max-w-xs">
-          Estamos verificando y procesando tu información. 
-          Esto solo tomará unos momentos.
+          Estamos verificando y procesando tu información. Esto solo tomará unos
+          momentos.
         </p>
-        
+
         {/* Barra de progreso horizontal con animación */}
         <div className="w-full max-w-xs h-1.5 bg-gray-100 rounded-full overflow-hidden">
           <div className="relative w-full h-full">
-            <div 
+            <div
               className="absolute h-full bg-primary-dark rounded-full"
               style={{
                 width: "30%",
-                animation: "indeterminateProgress 1.5s infinite ease-in-out"
+                animation: "indeterminateProgress 1.5s infinite ease-in-out",
               }}
             ></div>
           </div>
         </div>
-        
+
         <style jsx>{`
           @keyframes indeterminateProgress {
             0% {
@@ -189,7 +221,7 @@ const Verification = ({ formData, onPrevious, onSubmit }) => {
       </div>
     </Dialog>
   );
-  
+
   const renderSuccessDialog = () => (
     <Dialog
       visible={showSuccessDialog}
@@ -197,12 +229,13 @@ const Verification = ({ formData, onPrevious, onSubmit }) => {
       showHeader={false}
       className="border-none"
       contentClassName="p-0"
-      style={{ 
-        width: "100%", 
+      style={{
+        width: "100%",
         maxWidth: "480px",
         borderRadius: "16px",
         overflow: "hidden",
-        boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05)"
+        boxShadow:
+          "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05)",
       }}
     >
       <div className="bg-white">
@@ -213,100 +246,111 @@ const Verification = ({ formData, onPrevious, onSubmit }) => {
             <div className="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center">
               {/* Círculo decorativo externo */}
               <div className="absolute w-full h-full rounded-full border-8 border-green-100"></div>
-              
+
               {/* Icono de éxito */}
               <i className="pi pi-check text-3xl text-green-500"></i>
             </div>
-            
+
             {/* Elementos decorativos alrededor */}
             <span className="absolute top-0 right-0 w-4 h-4 bg-green-100 rounded-full transform translate-x-1/2 -translate-y-1/2"></span>
             <span className="absolute bottom-1 left-0 w-3 h-3 bg-green-200 rounded-full transform -translate-x-1/2 translate-y-1/4"></span>
           </div>
         </div>
-        
+
         {/* Línea divisoria sutil */}
         <div className="w-24 h-px bg-gray-200 mx-auto"></div>
-        
+
         {/* Contenido principal */}
         <div className="pt-6 pb-4 px-8">
           <h2 className="text-2xl font-bold text-gray-800 text-center mb-4">
             ¡Registro completado!
           </h2>
-          
+
           <p className="text-center text-gray-600 mb-6 max-w-md mx-auto">
-            Hemos recibido tu solicitud correctamente. Nuestro equipo revisará tu
-            información y activará tu cuenta lo antes posible.
+            Hemos recibido tu solicitud correctamente. Nuestro equipo revisará
+            tu información y activará tu cuenta lo antes posible.
           </p>
-          
+
           <div className="bg-gray-50 border border-gray-100 rounded-xl p-5 mb-6">
             <div className="flex items-start mb-4">
               <div className="flex-shrink-0 w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center mr-4">
                 <i className="pi pi-envelope text-blue-500"></i>
               </div>
               <div>
-                <h4 className="text-base font-medium text-gray-800 mb-1">Notificación por email</h4>
+                <h4 className="text-base font-medium text-gray-800 mb-1">
+                  Notificación por email
+                </h4>
                 <p className="text-sm text-gray-600">
-                  Te enviaremos un correo electrónico cuando tu cuenta esté activa y lista para usar.
+                  Te enviaremos un correo electrónico cuando tu cuenta esté
+                  activa y lista para usar.
                 </p>
               </div>
             </div>
-            
+
             <div className="flex items-start">
               <div className="flex-shrink-0 w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center mr-4">
                 <i className="pi pi-compass text-blue-500"></i>
               </div>
               <div>
-                <h4 className="text-base font-medium text-gray-800 mb-1">Mientras tanto</h4>
+                <h4 className="text-base font-medium text-gray-800 mb-1">
+                  Mientras tanto
+                </h4>
                 <p className="text-sm text-gray-600">
-                  Puedes explorar los servicios disponibles en nuestra plataforma.
+                  Puedes explorar los servicios disponibles en nuestra
+                  plataforma.
                 </p>
               </div>
             </div>
           </div>
         </div>
-        
+
         {/* Pie del diálogo con contador de 30 segundos */}
         <div className="bg-gray-50 py-4 px-8 border-t border-gray-100">
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-500">
               Serás redirigido automáticamente
             </div>
-            
+
             <div className="flex items-center">
               <div className="w-16 h-16 relative mr-2">
                 <svg className="w-full h-full" viewBox="0 0 100 100">
                   {/* Círculo base */}
-                  <circle 
-                    cx="50" cy="50" r="40" 
-                    fill="none" 
-                    stroke="#e5e7eb" 
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="40"
+                    fill="none"
+                    stroke="#e5e7eb"
                     strokeWidth="10"
                   />
-                  
+
                   {/* Círculo de progreso animado - ajustado para 30 segundos */}
-                  <circle 
-                    cx="50" cy="50" r="40" 
-                    fill="none" 
-                    stroke="#2563eb" 
+                  <circle
+                    cx="50"
+                    cy="50"
+                    r="40"
+                    fill="none"
+                    stroke="#2563eb"
                     strokeWidth="10"
                     strokeLinecap="round"
                     strokeDasharray="251.2"
                     strokeDashoffset={251.2 * (1 - countdown / 30)}
                     transform="rotate(-90 50 50)"
                     style={{
-                      transition: "stroke-dashoffset 1s linear"
+                      transition: "stroke-dashoffset 1s linear",
                     }}
                   />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-sm font-medium text-gray-700">{countdown}</span>
+                  <span className="text-sm font-medium text-gray-700">
+                    {countdown}
+                  </span>
                 </div>
               </div>
-              
-              <button 
+
+              <button
                 className="py-2 px-4 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors"
                 onClick={() => {
-                  // Lógica para redirección inmediata
                   setCountdown(0);
                 }}
               >
@@ -421,13 +465,11 @@ const Verification = ({ formData, onPrevious, onSubmit }) => {
               </div>
 
               <div>
-                <h4 className="text-sm font-medium text-neutral-gray mb-1 flex items-center">
+                <h4 className="text-sm font-medium text-neutral-gray mb-2 flex items-center">
                   <i className="pi pi-calendar mr-2 text-primary-dark"></i>
                   Disponibilidad
                 </h4>
-                <p className="pl-6 text-neutral-dark">
-                  {getAvailabilityHighlights()}
-                </p>
+                {getDetailedAvailability()}
               </div>
 
               <div>
@@ -452,21 +494,21 @@ const Verification = ({ formData, onPrevious, onSubmit }) => {
       </div>
 
       <div className=" px-3 py-4 flex flex-col-reverse sm:flex-row justify-between gap-3 rounded-lg max-w-3xl mx-auto">
-  <Button
-    label="Modificar datos"
-    icon="pi pi-arrow-left"
-    onClick={onPrevious}
-    disabled={isSubmitting}
-    className="px-6 py-3 text-primary-dark border-2 border-primary-dark hover:bg-primary-dark hover:text-white transition-all duration-200 w-full sm:w-auto"
-  />
-  <Button
-    label={isSubmitting ? "Procesando..." : "Confirmar registro"}
-    icon={isSubmitting ? "pi pi-spin pi-spinner" : "pi pi-check"}
-    onClick={handleSubmitWithFeedback}
-    disabled={isSubmitting}
-    className="px-6 py-3 bg-primary-dark text-white hover:bg-primary-dark/90 transition-all duration-200 w-full sm:w-auto"
-  />
-</div>
+        <Button
+          label="Modificar datos"
+          icon="pi pi-arrow-left"
+          onClick={onPrevious}
+          disabled={isSubmitting}
+          className="px-6 py-3 text-primary-dark border-2 border-primary-dark hover:bg-primary-dark hover:text-white transition-all duration-200 w-full sm:w-auto"
+        />
+        <Button
+          label={isSubmitting ? "Procesando..." : "Confirmar registro"}
+          icon={isSubmitting ? "pi pi-spin pi-spinner" : "pi pi-check"}
+          onClick={handleSubmitWithFeedback}
+          disabled={isSubmitting}
+          className="px-6 py-3 bg-primary-dark text-white hover:bg-primary-dark/90 transition-all duration-200 w-full sm:w-auto"
+        />
+      </div>
 
       {/* Processing Dialog */}
       {renderProcessingDialog()}

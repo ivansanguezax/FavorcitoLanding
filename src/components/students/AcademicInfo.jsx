@@ -436,20 +436,19 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
       </div>
 
       <div className=" px-3 py-4 flex flex-col-reverse sm:flex-row justify-between gap-3">
-  <Button
-    label="Atrás"
-    icon="pi pi-arrow-left"
-    onClick={onPrevious}
-    className="px-6 py-3 text-primary-dark border-2 border-primary-dark hover:bg-primary-dark hover:text-white transition-all duration-200"
-  />
-  <Button
-    label="Siguiente"
-    icon="pi pi-arrow-right"
-    onClick={handleNext}
-    className="px-6 py-3 text-primary-dark border-2 border-primary-dark hover:bg-primary-dark hover:text-white transition-all duration-200"
-  />
-</div>
-
+        <Button
+          label="Atrás"
+          icon="pi pi-arrow-left"
+          onClick={onPrevious}
+          className="px-6 py-3 text-primary-dark border-2 border-primary-dark hover:bg-primary-dark hover:text-white transition-all duration-200"
+        />
+        <Button
+          label="Siguiente"
+          icon="pi pi-arrow-right"
+          onClick={handleNext}
+          className="px-6 py-3 text-primary-dark border-2 border-primary-dark hover:bg-primary-dark hover:text-white transition-all duration-200"
+        />
+      </div>
 
       <Dialog
         visible={showUploadModal}
@@ -550,7 +549,7 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
                     </div>
                   )}
                   <p className="text-sm text-neutral-dark text-center">
-                    Haz clic en "Subir archivo" para cargar este documento
+                    Haz clic en &quot;Subir archivo&quot; para cargar este documento
                   </p>
                 </div>
               ) : (
@@ -579,7 +578,7 @@ const AcademicInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
                     </div>
                   </div>
                   <p className="text-xs text-neutral-gray mt-2">
-                    Tamaño máximo: 25MB
+                    Tamaño máximo: 10MB
                   </p>
                   <div className="mt-6 p-3 bg-blue-50 rounded-lg max-w-sm">
                     <p className="text-xs text-blue-700">

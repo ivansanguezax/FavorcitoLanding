@@ -23,6 +23,9 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const fileInputRef = useRef(null);
   const dropZoneRef = useRef(null);
+  const [distritos, setDistritos] = useState([]);
+  const [customZona, setCustomZona] = useState("");
+  const [showCustomZona, setShowCustomZona] = useState(false);
 
   // Definimos las ciudades usando las que están en el JSON
   const cities = Object.keys(zonasData.Bolivia).map((city) => ({
@@ -30,11 +33,51 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
     value: city,
   }));
 
-  // Las zonas ahora se cargan desde el archivo JSON
+  // Función para verificar si la ciudad es Sucre
+  const isSucre = () => formData.city === "Sucre";
+
+  // Función para obtener los distritos de Sucre
+  const getDistritosOptions = () => {
+    if (formData.city !== "Sucre") return [];
+    
+    // Obtener los distritos para Sucre
+    return Object.keys(zonasData.Bolivia.Sucre).map(distrito => ({
+      label: distrito,
+      value: distrito
+    }));
+  };
+
+  // Función para obtener las zonas según la ciudad seleccionada
   const getZonasOptions = () => {
     if (!formData.city) return [];
 
-    // Obtener las zonas para la ciudad seleccionada desde el JSON
+    // Caso especial para Sucre
+    if (formData.city === "Sucre") {
+      if (!formData.distrito) return [];
+      
+      // Obtenemos las zonas del distrito seleccionado
+      const distritoData = zonasData.Bolivia.Sucre[formData.distrito];
+      
+      // Si el distrito tiene subzonas (es un objeto)
+      if (typeof distritoData === 'object' && !Array.isArray(distritoData)) {
+        return Object.keys(distritoData).map(zona => ({
+          label: zona,
+          value: zona
+        }));
+      }
+      
+      // Si el distrito tiene zonas directamente (es un array)
+      if (Array.isArray(distritoData)) {
+        return distritoData.map(zona => ({
+          label: zona,
+          value: zona
+        }));
+      }
+      
+      return [];
+    }
+    
+    // Caso normal para otras ciudades
     const zonasForCity = zonasData.Bolivia[formData.city] || [];
 
     // Convertir el array de strings a array de objetos para Dropdown
@@ -42,6 +85,54 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
       label: zona,
       value: zona,
     }));
+  };
+
+  // Función para manejar la selección de distrito en Sucre
+  const handleDistritoChange = (e) => {
+    updateFormData({
+      ...formData,
+      distrito: e.value,
+      zona: null // Resetear la zona al cambiar el distrito
+    });
+  };
+
+  // Función para obtener subzonas en Sucre si es necesario
+  const getSubzonasOptions = () => {
+    if (!formData.city === "Sucre" || !formData.distrito || !formData.zona) return [];
+    
+    const distritoData = zonasData.Bolivia.Sucre[formData.distrito];
+    
+    // Si es un objeto, entonces tiene subzonas
+    if (typeof distritoData === 'object' && !Array.isArray(distritoData)) {
+      const zonasData = distritoData[formData.zona];
+      if (Array.isArray(zonasData)) {
+        return zonasData.map(subzona => ({
+          label: subzona,
+          value: subzona
+        }));
+      }
+    }
+    
+    return [];
+  };
+
+  // Función para aplicar una zona personalizada
+  const applyCustomZona = () => {
+    if (customZona.trim()) {
+      updateFormData({
+        ...formData,
+        zona: customZona.trim()
+      });
+      setShowCustomZona(false);
+      setCustomZona("");
+    } else {
+      toast.current.show({
+        severity: "warn",
+        summary: "Campo vacío",
+        detail: "Por favor ingresa el nombre de la zona",
+        life: 3000,
+      });
+    }
   };
 
   useEffect(() => {
@@ -77,6 +168,15 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
       }
     }
   }, []);
+
+  // Actualizar los distritos cuando cambia la ciudad
+  useEffect(() => {
+    if (formData.city === "Sucre") {
+      setDistritos(getDistritosOptions());
+    }
+    // Resetear la zona personalizada si cambia la ciudad
+    setShowCustomZona(false);
+  }, [formData.city]);
 
   // Save to localStorage whenever formData changes
   useEffect(() => {
@@ -135,8 +235,13 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
       return false;
     }
 
+    // Validación especial para Sucre
+    if (formData.city === "Sucre" && !formData.distrito) {
+      showError("Distrito es requerido");
+      return false;
+    }
+
     if (!formData.zona) {
-      // Cambiamos province por zona
       showError("Zona es requerida");
       return false;
     }
@@ -186,8 +291,9 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
         email: formData.email,
         phone: formData.phone,
         city: formData.city,
-        zona: formData.zona, // Usamos zona en lugar de province
-        address: formData.address,
+        zona: formData.zona,
+        // Incluir distrito si la ciudad es Sucre
+        ...(formData.city === "Sucre" ? { distrito: formData.distrito } : {})
       };
 
       // Update form data
@@ -440,6 +546,7 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
                 ...formData,
                 city: e.value,
                 zona: null, // Reset zona when city changes
+                distrito: null, // Reset distrito when city changes
               })
             }
             options={cities}
@@ -452,32 +559,104 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
           />
         </div>
 
-        <div className="flex flex-col space-y-2">
-          <label htmlFor="zona" className="text-neutral-dark font-medium">
-            Zona <span className="text-red-500">*</span>
-          </label>
-          <Dropdown
-            id="zona"
-            value={formData.zona || ""} // Cambiamos province por zona
-            onChange={(e) =>
-              updateFormData({
-                ...formData,
-                zona: e.value, // Cambiamos province por zona
-              })
-            }
-            options={getZonasOptions()}
-            placeholder={
-              formData.city
-                ? "Selecciona tu zona"
-                : "Primero selecciona una ciudad"
-            }
-            className={dropdownClassName}
-            filter={true}
-            filterInputAutoFocus={true}
-            showFilterClear={true}
-            panelClassName="border border-neutral-gray rounded-lg shadow-lg"
-            disabled={!formData.city}
-          />
+        {/* Mostrar selección de distrito solo para Sucre */}
+        {isSucre() && (
+          <div className="flex flex-col space-y-2">
+            <label htmlFor="distrito" className="text-neutral-dark font-medium">
+              Distrito <span className="text-red-500">*</span>
+            </label>
+            <Dropdown
+              id="distrito"
+              value={formData.distrito || ""}
+              onChange={handleDistritoChange}
+              options={distritos}
+              placeholder="Selecciona un distrito"
+              className={dropdownClassName}
+              filter
+              filterInputAutoFocus
+              showFilterClear
+              panelClassName="border border-neutral-gray rounded-lg shadow-lg"
+            />
+          </div>
+        )}
+
+        <div className={`flex flex-col space-y-2 ${isSucre() ? 'md:col-span-2' : ''}`}>
+          <div className="flex justify-between items-center">
+            <label htmlFor="zona" className="text-neutral-dark font-medium">
+              Zona <span className="text-red-500">*</span>
+            </label>
+            <Button
+              type="button"
+              label="No encuentro mi zona"
+              className="p-button-text p-button-sm text-primary-dark"
+              onClick={() => setShowCustomZona(true)}
+            />
+          </div>
+          
+          {!showCustomZona ? (
+  <div className="relative">
+    {formData.zona && !getZonasOptions().some(option => option.value === formData.zona) ? (
+      <div className="w-full border-2 border-neutral-gray rounded-lg px-4 py-2.5 h-12 flex items-center justify-between">
+        <span>{formData.zona}</span>
+        <Button
+          icon="pi pi-pencil"
+          className="p-button-text p-button-sm"
+          onClick={() => {
+            setCustomZona(formData.zona);
+            setShowCustomZona(true);
+          }}
+        />
+      </div>
+    ) : (
+      <Dropdown
+        id="zona"
+        value={formData.zona || ""} 
+        onChange={(e) =>
+          updateFormData({
+            ...formData,
+            zona: e.value,
+          })
+        }
+        options={getZonasOptions()}
+        placeholder={
+          isSucre() 
+            ? formData.distrito 
+              ? "Selecciona tu zona" 
+              : "Primero selecciona un distrito"
+            : formData.city
+              ? "Selecciona tu zona"
+              : "Primero selecciona una ciudad"
+        }
+        className={dropdownClassName}
+        filter={true}
+        filterInputAutoFocus={true}
+        showFilterClear={true}
+        panelClassName="border border-neutral-gray rounded-lg shadow-lg"
+        disabled={isSucre() ? !formData.distrito : !formData.city}
+      />
+    )}
+  </div>
+) : (
+            <div className="flex gap-2">
+              <InputText
+                value={customZona}
+                onChange={(e) => setCustomZona(e.target.value)}
+                placeholder="Ingresa el nombre de tu zona"
+                className="flex-1 border-2 border-neutral-gray rounded-lg px-4 py-2.5 h-12"
+              />
+              <Button
+                icon="pi pi-check"
+                onClick={applyCustomZona}
+                className="px-4 py-2 bg-primary-dark text-white hover:bg-primary-dark/90 transition-colors rounded-lg"
+                disabled={!customZona.trim()}
+              />
+              <Button
+                icon="pi pi-times"
+                onClick={() => setShowCustomZona(false)}
+                className="px-4 py-2 border border-neutral-gray text-neutral-dark hover:bg-gray-100 transition-colors rounded-lg"
+              />
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col space-y-2 md:col-span-2">
@@ -569,6 +748,43 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
           className="px-6 py-3 text-primary-dark border-2 border-primary-dark hover:bg-primary-dark hover:text-white transition-all duration-200"
         />
       </div>
+
+      {/* Modal para ingreso de zona personalizada */}
+      <Dialog
+        visible={showCustomZona && !showUploadModal}
+        onHide={() => setShowCustomZona(false)}
+        header="Agregar zona personalizada"
+        footer={
+          <div className="flex justify-end gap-3">
+            <Button
+              label="Cancelar"
+              icon="pi pi-times"
+              onClick={() => setShowCustomZona(false)}
+              className="px-4 py-2 border border-neutral-gray text-neutral-dark hover:bg-gray-100 transition-colors rounded-lg"
+            />
+            <Button
+              label="Guardar"
+              icon="pi pi-check"
+              onClick={applyCustomZona}
+              className="px-4 py-2 bg-primary-dark text-white hover:bg-primary-dark/90 transition-colors rounded-lg"
+              disabled={!customZona.trim()}
+            />
+          </div>
+        }
+        className="w-full max-w-md"
+      >
+        <div className="p-4">
+          <p className="mb-4 text-neutral-dark">
+            Si no encuentras tu zona en la lista, puedes agregarla manualmente:
+          </p>
+          <InputText
+            value={customZona}
+            onChange={(e) => setCustomZona(e.target.value)}
+            className="w-full border-2 border-neutral-gray rounded-lg px-4 py-2.5 h-12"
+            placeholder="Nombre de tu zona"
+          />
+        </div>
+      </Dialog>
 
       <Dialog
         visible={showUploadModal}

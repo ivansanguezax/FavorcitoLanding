@@ -35,3 +35,7 @@
     margin-top: 15px;
   }
 }
+
+.hide-dropdown-icon .p-multiselect-trigger {
+  display: none !important;
+}

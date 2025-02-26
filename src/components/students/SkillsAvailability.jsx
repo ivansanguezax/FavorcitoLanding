@@ -244,11 +244,12 @@ const SkillsAvailability = ({ formData, updateFormData, onNext }) => {
 
   const clearDayTimes = (dayName) => {
     const currentAvailability = formData.availability || {};
+    
+    // Deseleccionar el día completamente (eliminarlo de la disponibilidad)
+    const { [dayName]: removed, ...restDays } = currentAvailability;
+    
     updateFormData({
-      availability: {
-        ...currentAvailability,
-        [dayName]: []
-      }
+      availability: restDays
     });
   };
 
@@ -287,20 +288,20 @@ const SkillsAvailability = ({ formData, updateFormData, onNext }) => {
     }
     
     return (
-      <div className="p-3">
+      <div className="p-4">
         <div className="font-medium mb-3">Selecciona horarios</div>
-        <div className="border-t border-neutral-gray pt-3 mb-2">
-          <div className="text-sm font-medium mb-2 flex items-center">
+        <div className="border-t border-neutral-gray pt-4 mb-3">
+          <div className="text-sm font-medium mb-3 flex items-center">
             <i className="pi pi-copy mr-2 text-primary-dark"></i>
             Copiar horarios de:
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-3 px-1">
             {daysWithSchedules.map(day => (
               <Button
                 key={day}
                 label={day}
                 icon="pi pi-calendar"
-                className="p-button-sm p-button-outlined p-button-primary shadow-sm"
+                className="p-button-sm bg-white text-primary-dark border border-gray-200 shadow-sm hover:bg-gray-50 transition-all duration-150 py-2 px-3"
                 onClick={() => handleDuplicateTimes(day, dayName)}
               />
             ))}
@@ -396,32 +397,35 @@ const SkillsAvailability = ({ formData, updateFormData, onNext }) => {
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {Object.keys(formData.availability || {}).map((dayName) => (
-                      <div key={dayName} className="space-y-1">
-                        <div className="flex justify-between items-center">
+                      <div key={dayName} className="mb-4 relative">
+                        <div className="flex justify-between items-center mb-1">
                           <label className="block text-sm font-medium text-neutral-dark">
                             {dayName}
                           </label>
-                          {getSelectedTimes(dayName).length > 0 && (
-                            <Button
-                              icon="pi pi-times"
-                              className="p-button-text p-button-rounded p-button-sm"
-                              onClick={() => clearDayTimes(dayName)}
-                              tooltip="Borrar todos los horarios"
-                            />
-                          )}
                         </div>
                         
-                        <MultiSelect
-                          value={getSelectedTimes(dayName)}
-                          options={timeSlots}
-                          onChange={(e) => handleTimeSelect(dayName, e.value)}
-                          optionLabel="label"
-                          placeholder="Selecciona horarios"
-                          display="chip"
-                          className="w-full border border-neutral-gray rounded-lg"
-                          panelHeaderTemplate={(options) => getHeaderContent({...options, context: {...options.context, day: dayName}})}
-                          panelFooterTemplate={(options) => panelTemplate({...options, context: {...options.context, day: dayName}})}
-                        />
+                        <div className="relative">
+  <MultiSelect
+    value={getSelectedTimes(dayName)}
+    options={timeSlots}
+    onChange={(e) => handleTimeSelect(dayName, e.value)}
+    optionLabel="label"
+    placeholder="Selecciona horarios"
+    display="chip"
+    className={`w-full border border-neutral-gray rounded-lg ${getSelectedTimes(dayName).length > 0 ? 'hide-dropdown-icon' : ''}`}
+    panelClassName="mt-2"
+    panelHeaderTemplate={(options) => getHeaderContent({...options, context: {...options.context, day: dayName}})}
+    panelFooterTemplate={(options) => panelTemplate({...options, context: {...options.context, day: dayName}})}
+  />
+  {getSelectedTimes(dayName).length > 0 && (
+    <Button
+      icon="pi pi-times"
+      className="p-button-text p-button-rounded p-button-sm absolute right-1 top-1/2 -translate-y-1/2 z-10"
+      onClick={() => clearDayTimes(dayName)}
+      tooltip="Deseleccionar día"
+    />
+  )}
+</div>
                       </div>
                     ))}
                   </div>
