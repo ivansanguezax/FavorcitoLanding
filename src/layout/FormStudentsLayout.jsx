@@ -10,6 +10,7 @@ import Onboarding from "../components/students/Onboarding";
 import Loader from "../components/Main/Loader";
 import { studentsService } from "../services/studentsService";
 import PropTypes from "prop-types";
+import { Mixpanel } from "../services/mixpanel";
 
 // Componente de confirmación para salir - REDISEÑADO
 const ExitConfirmation = ({ onCancel, onConfirm }) => {
@@ -257,6 +258,17 @@ export const FormStudentsLayout = () => {
     setPageKey(Date.now());
   }, [location.pathname]);
 
+
+  useEffect(() => {
+    Mixpanel.track("Form_Load", {
+      referrer: document.referrer,
+      device: isMobile ? "mobile" : "desktop",
+      timestamp: Date.now()
+    });
+  }, [pageKey]);
+
+  
+
   // Efecto para manejar el evento de salida
   useEffect(() => {
     const handleBeforeUnload = (e) => {
@@ -267,6 +279,8 @@ export const FormStudentsLayout = () => {
         return message;
       }
     };
+
+
 
     // Interceptar cambios de ruta dentro de la app
     const handleRouteChange = (e) => {
@@ -337,13 +351,41 @@ export const FormStudentsLayout = () => {
   };
 
   const handleNext = () => {
+    const currentStepName = getStepName(activeIndex);
+    const nextStepName = getStepName(activeIndex + 1);
+    
+    Mixpanel.track("Step_Change", {
+      from: currentStepName,
+      to: nextStepName,
+      direction: "next"
+    });
+    
     setActiveIndex((prev) => Math.min(3, prev + 1));
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
-
+  
   const handlePrevious = () => {
+    const currentStepName = getStepName(activeIndex);
+    const prevStepName = getStepName(activeIndex - 1);
+    
+    Mixpanel.track("Step_Change", {
+      from: currentStepName,
+      to: prevStepName,
+      direction: "previous"
+    });
+    
     setActiveIndex((prev) => Math.max(0, prev - 1));
     window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+  
+  const getStepName = (index) => {
+    const stepNames = [
+      "Habilidades y Disponibilidad",
+      "Información Académica",
+      "Información Personal",
+      "Verificación"
+    ];
+    return stepNames[index] || `Step_${index}`;
   };
 
   const handleSubmit = async () => {

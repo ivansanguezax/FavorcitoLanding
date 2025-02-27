@@ -3,6 +3,7 @@ import { InputTextarea } from "primereact/inputtextarea";
 import { Button } from "primereact/button";
 import { MultiSelect } from "primereact/multiselect";
 import PropTypes from "prop-types";
+import { Mixpanel } from "../../services/mixpanel";
 
 const SkillsAvailability = ({ formData, updateFormData, onNext }) => {
   const [showAdditionalFields, setShowAdditionalFields] = useState(false);
@@ -192,13 +193,25 @@ const SkillsAvailability = ({ formData, updateFormData, onNext }) => {
   const handleSkillSelect = (skill) => {
     const currentSkills = formData.skills || [];
     let updatedSkillValues;
-
+  
     if (currentSkills.includes(skill.value)) {
       updatedSkillValues = currentSkills.filter((s) => s !== skill.value);
+      
+      Mixpanel.track("Skill_Removed", {
+        skill_name: skill.value,
+        skills_total: updatedSkillValues.length - 1,
+        is_last_skill: updatedSkillValues.length === 1
+      });
     } else {
       updatedSkillValues = [...currentSkills, skill.value];
+      
+      Mixpanel.track("Skill_Added", {
+        skill_name: skill.value,
+        skills_total: updatedSkillValues.length,
+        is_first_skill: currentSkills.length === 0
+      });
     }
-
+  
     updateFormData({
       skills: updatedSkillValues,
       ...(updatedSkillValues.length === 0 && {

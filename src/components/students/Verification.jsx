@@ -3,6 +3,7 @@ import { Button } from "primereact/button";
 import { Dialog } from "primereact/dialog";
 import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
+import { Mixpanel } from "../../services/mixpanel";
 
 const Verification = ({ formData, onPrevious, onSubmit }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -130,17 +131,29 @@ const Verification = ({ formData, onPrevious, onSubmit }) => {
     );
   };
 
-  // Handle the submission with better UI flow
   const handleSubmitWithFeedback = async () => {
     // Prevent multiple submissions
     if (isSubmitting) return;
-
+  
     setIsSubmitting(true);
     setShowProcessingDialog(true);
-
+  
+    Mixpanel.track("Form_Submit_Attempt", {
+      total_skills: formData.skills?.length || 0,
+      total_days: Object.keys(formData.availability || {}).length
+    });
+    
+  
     try {
       await onSubmit();
-
+  
+// Para Form_Submit_Success
+Mixpanel.track("Form_Submit_Success", {
+  university: formData.university,
+  city: formData.city,
+  total_skills: formData.skills?.length || 0
+});
+  
       setTimeout(() => {
         setShowProcessingDialog(false);
         setShowSuccessDialog(true);
@@ -148,6 +161,12 @@ const Verification = ({ formData, onPrevious, onSubmit }) => {
       }, 1500);
     } catch (error) {
       console.error("Error al enviar la solicitud:", error);
+      
+      // Trackear el evento de error en el envío
+      Mixpanel.track("Form_Submit_Error", {
+        error_message: error.message || "Unknown error"
+      });
+      
       setShowProcessingDialog(false);
       setIsSubmitting(false);
     }
