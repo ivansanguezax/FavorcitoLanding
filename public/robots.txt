@@ -1,0 +1,15 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /private/
+Disallow: /login/
+Disallow: /register/
+Disallow: /dashboard/
+Disallow: /api/
+Disallow: /server/
+Allow: /
+
+Sitemap: https://tufavorcito.com/sitemap.xml
+Sitemap: https://tufavorcito.com/sitemap-pages.xml
+
+User-agent: Googlebot
+Allow: /

@@ -9,7 +9,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<MainLayout />} />
-          <Route path="/register/*" element={<FormStudentsLayout />} />
+          <Route path="/estudiantes/*" element={<FormStudentsLayout />} />
         </Routes>
       </Router>
     </HelmetProvider>

@@ -156,9 +156,9 @@ const Carousel = ({ items, initialScroll = 0 }) => {
   const checkScrollability = () => {
     if (carouselRef.current) {
       const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
-      
+
       setCanScrollLeft(scrollLeft > 10); // Usando un pequeño valor de umbral
-      
+
       setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10);
     }
   };
@@ -179,13 +179,13 @@ const Carousel = ({ items, initialScroll = 0 }) => {
     const handleResize = () => {
       checkScrollability();
     };
-  
-    window.addEventListener('resize', handleResize);
-    
+
+    window.addEventListener("resize", handleResize);
+
     checkScrollability();
-    
+
     return () => {
-      window.removeEventListener('resize', handleResize);
+      window.removeEventListener("resize", handleResize);
     };
   }, []);
 
@@ -233,31 +233,39 @@ const Carousel = ({ items, initialScroll = 0 }) => {
           </div>
         </div>
         <div className="flex justify-end gap-2 mr-4 md:mr-10 mb-4">
-  <button
-    className={`relative z-40 h-10 w-10 rounded-full flex items-center justify-center transition-all duration-200 ${
-      canScrollLeft 
-        ? "bg-[#02533C] hover:bg-[#02533C]/90 cursor-pointer shadow-md" 
-        : "bg-gray-300 cursor-not-allowed"
-    }`}
-    onClick={scrollLeft}
-    disabled={!canScrollLeft}
-    aria-label="Desplazar a la izquierda"
-  >
-    <ArrowLeft className={`h-6 w-6 ${canScrollLeft ? "text-white" : "text-gray-500"}`} />
-  </button>
-  <button
-    className={`relative z-40 h-10 w-10 rounded-full flex items-center justify-center transition-all duration-200 ${
-      canScrollRight 
-        ? "bg-[#02533C] hover:bg-[#02533C]/90 cursor-pointer shadow-md" 
-        : "bg-gray-300 cursor-not-allowed"
-    }`}
-    onClick={scrollRight}
-    disabled={!canScrollRight}
-    aria-label="Desplazar a la derecha"
-  >
-    <ArrowRight className={`h-6 w-6 ${canScrollRight ? "text-white" : "text-gray-500"}`} />
-  </button>
-</div>
+          <button
+            className={`relative z-40 h-10 w-10 rounded-full flex items-center justify-center transition-all duration-200 ${
+              canScrollLeft
+                ? "bg-[#02533C] hover:bg-[#02533C]/90 cursor-pointer shadow-md"
+                : "bg-gray-300 cursor-not-allowed"
+            }`}
+            onClick={scrollLeft}
+            disabled={!canScrollLeft}
+            aria-label="Desplazar a la izquierda"
+          >
+            <ArrowLeft
+              className={`h-6 w-6 ${
+                canScrollLeft ? "text-white" : "text-gray-500"
+              }`}
+            />
+          </button>
+          <button
+            className={`relative z-40 h-10 w-10 rounded-full flex items-center justify-center transition-all duration-200 ${
+              canScrollRight
+                ? "bg-[#02533C] hover:bg-[#02533C]/90 cursor-pointer shadow-md"
+                : "bg-gray-300 cursor-not-allowed"
+            }`}
+            onClick={scrollRight}
+            disabled={!canScrollRight}
+            aria-label="Desplazar a la derecha"
+          >
+            <ArrowRight
+              className={`h-6 w-6 ${
+                canScrollRight ? "text-white" : "text-gray-500"
+              }`}
+            />
+          </button>
+        </div>
       </div>
     </CarouselContext.Provider>
   );

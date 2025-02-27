@@ -1,79 +1,106 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    
     <title>Favorcito | Conecta con Estudiantes Universitarios para Tareas Diarias</title>
-    <link rel="icon" type="image/png" href="src/assets/icon.png" />
-    <link rel="canonical" href="https://tufavorcito.com" />
     
-    <!-- Metadatos principales -->
-    <meta name="description" content="Favorcito - Conectamos estudiantes universitarios con personas que necesitan ayuda. Servicios de mudanza, desarrollo web, reparaciones y más. La mejor plataforma de microtrabajos en Bolivia." />
-    <meta name="keywords" content="Favorcito, favores Bolivia, microtrabajos, estudiantes universitarios, ayuda universitaria, servicios estudiantiles, ganar dinero estudiando, tareas Bolivia, ayuda doméstica, servicios de mudanza, desarrollo web estudiantes, reparaciones hogar" />
-    <meta name="author" content="Favorcito" />
-    <meta name="robots" content="index, follow" />
+    <meta name="description" content="Favorcito conecta estudiantes universitarios con personas que necesitan ayuda en tareas diarias. Encuentra servicios de mudanza, desarrollo web, reparaciones y más.">
+    <meta name="keywords" content="Favorcito, trabajo para universitarios, microtrabajos, estudiantes Bolivia, ayuda estudiantes, servicios universitarios, tareas domésticas, servicios de mudanza, clases particulares, trabajos flexibles, freelance Bolivia">
+    <meta name="author" content="Favorcito">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="es">
+    <meta name="geo.region" content="BO">
+    <meta name="geo.placename" content="Bolivia">
+    <meta name="geo.position" content="-16.5000;-68.1500">
+    <meta name="ICBM" content="-16.5000, -68.1500">
     
-    <!-- Schema.org para Rich Snippets -->
+    <link rel="canonical" href="https://tufavorcito.com">
+    <link rel="icon" type="image/png" href="/src/assets/icon.png">
+    
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Favorcito | Conecta con Estudiantes Universitarios">
+    <meta property="og:description" content="Conectamos estudiantes universitarios con personas que necesitan ayuda en tareas diarias. Encuentra servicios confiables y económicos.">
+    <meta property="og:image" content="https://res.cloudinary.com/dfgjenml4/image/upload/v1738023031/banner_ojqkje.png">
+    <meta property="og:image:alt" content="Favorcito - Plataforma de servicios universitarios">
+    <meta property="og:url" content="https://tufavorcito.com">
+    <meta property="og:site_name" content="Favorcito">
+    <meta property="og:locale" content="es_BO">
+    
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Favorcito | Servicios Universitarios en Bolivia">
+    <meta name="twitter:description" content="Encuentra ayuda confiable de estudiantes universitarios para tareas diarias. Servicios de mudanza, desarrollo web, reparaciones y más.">
+    <meta name="twitter:image" content="https://res.cloudinary.com/dfgjenml4/image/upload/v1738023031/banner_ojqkje.png">
+    <meta name="twitter:site" content="@favorcito">
+    
     <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "WebApplication",
-        "name": "Favorcito",
-        "url": "https://tufavorcito.com",
-        "description": "Plataforma que conecta estudiantes universitarios con personas que necesitan ayuda en tareas cotidianas.",
-        "applicationCategory": "Servicios",
-        "operatingSystem": "Web",
-        "offers": {
-          "@type": "Offer",
-          "description": "Servicios de ayuda por estudiantes universitarios"
-        },
-        "aggregateRating": {
-          "@type": "AggregateRating",
-          "ratingValue": "4.8",
-          "ratingCount": "1250"
-        }
-      }
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Favorcito",
+      "url": "https://tufavorcito.com",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://tufavorcito.com/buscar?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      },
+      "sameAs": [
+        "https://www.facebook.com/favorcito",
+        "https://www.twitter.com/favorcito",
+        "https://www.instagram.com/favorcito"
+      ]
+    }
     </script>
-
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Favorcito" />
-    <meta property="og:title" content="Favorcito | Ayuda Universitaria a Tu Alcance" />
-    <meta property="og:description" content="Conectamos estudiantes universitarios con personas que necesitan ayuda. Servicios confiables y económicos para tus tareas diarias. ¡Apoya el talento universitario!" />
-    <meta property="og:image" content="https://res.cloudinary.com/dfgjenml4/image/upload/v1738023031/banner_ojqkje.png" />
-    <meta property="og:image:alt" content="Favorcito - Plataforma de servicios universitarios" />
-    <meta property="og:url" content="https://tufavorcito.com" />
-    <meta property="og:locale" content="es_BO" />
-
-    <!-- Twitter -->
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@favorcito" />
-    <meta name="twitter:title" content="Favorcito | Servicios Universitarios en Bolivia" />
-    <meta name="twitter:description" content="Encuentra ayuda confiable de estudiantes universitarios para tus tareas. Mudanzas, desarrollo web, reparaciones y más. ¡Apoya el talento joven!" />
-    <meta name="twitter:image" content="https://res.cloudinary.com/dfgjenml4/image/upload/v1738023031/banner_ojqkje.png" />
-    <meta name="twitter:image:alt" content="Favorcito - Servicios universitarios" />
-
-    <!-- Metadatos adicionales -->
-    <meta name="apple-mobile-web-app-title" content="Favorcito" />
-    <meta name="application-name" content="Favorcito" />
-    <meta name="theme-color" content="#02533C" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     
-    <!-- Preconexiones para mejor rendimiento -->
-    <link rel="preconnect" href="https://res.cloudinary.com" />
-    <link rel="dns-prefetch" href="https://res.cloudinary.com" />
-
-    <!-- PWA Tags -->
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-
-
-  </head>
-  <body>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Favorcito",
+      "url": "https://tufavorcito.com",
+      "description": "Plataforma que conecta estudiantes universitarios con personas que necesitan ayuda en tareas cotidianas.",
+      "applicationCategory": "Servicios",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "description": "Servicios de ayuda por estudiantes universitarios"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "ratingCount": "1250"
+      },
+      "contactPoint": {
+        "@type": "ContactPoint",
+        "telephone": "+59170000000",
+        "contactType": "customer service",
+        "areaServed": "BO",
+        "availableLanguage": "es"
+      }
+    }
+    </script>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Favorcito">
+    <meta name="application-name" content="Favorcito">
+    <meta name="theme-color" content="#02533C">
+    
+    <link rel="preconnect" href="https://res.cloudinary.com">
+    <link rel="dns-prefetch" href="https://res.cloudinary.com">
+    <link rel="preload" as="image" href="https://res.cloudinary.com/dfgjenml4/image/upload/v1738023031/banner_ojqkje.png">
+    <link rel="preload" as="script" href="/src/main.jsx">
+    
+    <link rel="stylesheet" href="/src/assets/styles.css">
+</head>
+<body>
     <main id="root"></main>
+    
     <noscript>
-      <p>Para usar Favorcito, por favor habilita JavaScript en tu navegador.</p>
+        <p>Para usar Favorcito, por favor habilita JavaScript en tu navegador.</p>
     </noscript>
+    
     <script type="module" src="/src/main.jsx"></script>
-  </body>
+</body>
 </html>
