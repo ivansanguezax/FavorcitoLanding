@@ -131,7 +131,7 @@ export const Navbar = () => {
             >
               <div className="flex flex-col gap-4 p-6">
                 <Button
-                  onClick={() => navigate('/register')}
+                  onClick={() => navigate('/estudiante')}
                   className={`px-6 py-2 rounded-full font-light bg-[#D3FE94] border-2 border-transparent text-[#02533C] hover:bg-transparent hover:border-[#D3FE94] hover:text-[#D3FE94] transition-all duration-300`}
                   label="Unirme"
                   icon="pi pi-arrow-up-right"
