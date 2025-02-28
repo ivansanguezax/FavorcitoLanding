@@ -116,7 +116,7 @@ const dynamicCategories = [
     id: 18,
     title: "Editor de\nVideos",
     icon: "pi pi-camera",
-    description: "Edición profesional"
+    description: "Edición semi-profesional"
   },
   {
     id: 19,
