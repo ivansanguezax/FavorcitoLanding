@@ -75,7 +75,7 @@ export const Testimonials = ({ autoplay = true }) => {
   };
 
   return (
-    <section className="py-16 bg-neutral-light">
+    <section className="py-16 bg-neutral-light relative pt-28 md:pt-24">
       <div className="container mx-auto px-4">
         {/* Título y subtítulo mejorados */}
         <div className="text-center mb-12">
@@ -83,7 +83,8 @@ export const Testimonials = ({ autoplay = true }) => {
             Testimonios de clientes
           </h2>
           <p className="text-lg text-neutral-dark max-w-2xl mx-auto">
-            Descubre las experiencias reales de quienes han confiado en nuestros estudiantes universitarios
+            Descubre las experiencias reales de quienes han confiado en nuestros
+            estudiantes universitarios
           </p>
         </div>
 
@@ -157,7 +158,7 @@ export const Testimonials = ({ autoplay = true }) => {
                 <h3 className="text-2xl font-bold text-black">
                   {testimonials[active].name}
                 </h3>
-                
+
                 {/* Servicio con icono */}
                 <div className="flex items-center mt-1 space-x-2">
                   <div className="w-6 h-6 flex items-center justify-center bg-primary-light rounded-full text-primary-dark">
@@ -167,7 +168,7 @@ export const Testimonials = ({ autoplay = true }) => {
                     {testimonials[active].service}
                   </p>
                 </div>
-                
+
                 <motion.p className="text-lg text-gray-500 mt-6">
                   {testimonials[active].quote.split(" ").map((word, index) => (
                     <motion.span
