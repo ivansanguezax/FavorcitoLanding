@@ -7,6 +7,7 @@ import { Hero } from "../components/Main/Hero";
 import { Navbar } from "../components/Main/Navbar";
 import Popular from "../components/Main/Popular";
 import StepByStep from "../components/Main/StepByStep";
+import Testimonials from "../components/Main/Testimonials"; // Importa el nuevo componente
 import Loader from "../components/Main/Loader";
 
 export const MainLayout = () => {
@@ -103,6 +104,7 @@ export const MainLayout = () => {
             <Navbar />
             <Hero />
             <Categories />
+            <Testimonials /> 
             <Popular />
             <StepByStep />
             <Footer />
