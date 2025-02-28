@@ -75,7 +75,7 @@ export const Testimonials = ({ autoplay = true }) => {
   };
 
   return (
-    <section className="py-16 bg-neutral-light relative pt-28 md:pt-24">
+<section className="py-16 bg-neutral-light mt-32 md:mt-24 relative z-10">
       <div className="container mx-auto px-4">
         {/* Título y subtítulo mejorados */}
         <div className="text-center mb-12">
@@ -91,7 +91,7 @@ export const Testimonials = ({ autoplay = true }) => {
         <div className="max-w-sm md:max-w-4xl mx-auto antialiased font-sans px-4 md:px-8 lg:px-12">
           <div className="relative grid grid-cols-1 md:grid-cols-2 gap-20">
             <div>
-              <div className="relative h-80 w-full">
+            <div className="relative h-80 w-full z-10">
                 <AnimatePresence>
                   {testimonials.map((testimonial, index) => (
                     <motion.div
@@ -108,8 +108,8 @@ export const Testimonials = ({ autoplay = true }) => {
                         z: isActive(index) ? 0 : -100,
                         rotate: isActive(index) ? 0 : randomRotateY(),
                         zIndex: isActive(index)
-                          ? 999
-                          : testimonials.length + 2 - index,
+                        ? 10  
+                        : testimonials.length + 2 - index,                      
                         y: isActive(index) ? [0, -80, 0] : 0,
                       }}
                       exit={{
@@ -198,11 +198,11 @@ export const Testimonials = ({ autoplay = true }) => {
               <div className="flex gap-4 pt-12 md:pt-0">
                 <button
                   onClick={handlePrev}
-                  className="h-8 w-8 rounded-full  bg-primary-dark flex items-center justify-center group/button hover:bg-primary-light transition-colors duration-300"
+                  className="h-8 w-8 rounded-full bg-primary-dark flex items-center justify-center group/button hover:bg-primary-light transition-colors duration-300"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 text-white group-hover/button:text-black  group-hover/button:rotate-12 transition-all duration-300"
+                    className="h-5 w-5 text-white group-hover/button:text-black group-hover/button:rotate-12 transition-all duration-300"
                     viewBox="0 0 24 24"
                     strokeWidth="2"
                     stroke="currentColor"
@@ -218,11 +218,11 @@ export const Testimonials = ({ autoplay = true }) => {
                 </button>
                 <button
                   onClick={handleNext}
-                  className="h-8 w-8 rounded-full  bg-primary-dark flex items-center justify-center group/button hover:bg-primary-light transition-colors duration-300"
+                  className="h-8 w-8 rounded-full bg-primary-dark flex items-center justify-center group/button hover:bg-primary-light transition-colors duration-300"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 text-white group-hover/button:text-black  group-hover/button:-rotate-12 transition-all duration-300"
+                    className="h-5 w-5 text-white group-hover/button:text-black group-hover/button:-rotate-12 transition-all duration-300"
                     viewBox="0 0 24 24"
                     strokeWidth="2"
                     stroke="currentColor"
