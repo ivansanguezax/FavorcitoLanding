@@ -1,8 +1,10 @@
+import { useEffect } from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   Navigate,
+  useNavigate,
 } from "react-router-dom";
 import { MainLayout } from "./layout/MainLayout";
 import { FormStudentsLayout } from "./layout/FormStudentsLayout";
@@ -38,6 +40,16 @@ PrivateRoute.propTypes = {
 
 const RegisterRoute = ({ children }) => {
   const { currentUser, userExists, loading } = useAuth();
+  const navigate = useNavigate();
+
+  // Este useEffect impedirá que un usuario registrado vuelva a la página de registro
+  useEffect(() => {
+    // Si el usuario ya está registrado y trata de acceder a la ruta de registro
+    if (currentUser && userExists) {
+      // Reemplazar la entrada en el historial para que no pueda volver al formulario
+      navigate("/dashboard", { replace: true });
+    }
+  }, [currentUser, userExists, navigate]);
 
   if (loading) {
     return (
@@ -88,40 +100,91 @@ HomeRoute.propTypes = {
   children: PropTypes.node.isRequired,
 };
 
+const NavigationController = () => {
+  const { currentUser, userExists } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handlePopState = () => {
+      if (currentUser && userExists) {
+        const restrictedPaths = ["/estudiante", "/auth"];
+        const currentPath = window.location.pathname;
+
+        if (restrictedPaths.some((path) => currentPath.includes(path))) {
+          navigate("/dashboard", { replace: true });
+        }
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [currentUser, userExists, navigate]);
+
+  return null;
+};
+
 function AppWithAuth() {
+  const { currentUser, userExists } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleNavigation = () => {
+      const isRegistrationPage =
+        window.location.pathname.includes("/estudiante");
+
+      if (isRegistrationPage && currentUser && userExists) {
+        navigate("/dashboard", { replace: true });
+      }
+    };
+
+    handleNavigation();
+
+    window.addEventListener("popstate", handleNavigation);
+
+    return () => {
+      window.removeEventListener("popstate", handleNavigation);
+    };
+  }, [currentUser, userExists, navigate]);
+
   return (
-    <Routes>
-      <Route
-        path="/"
-        element={
-          <HomeRoute>
-            <MainLayout />
-          </HomeRoute>
-        }
-      />
+    <>
+      <NavigationController />
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <HomeRoute>
+              <MainLayout />
+            </HomeRoute>
+          }
+        />
 
-      <Route path="/auth" element={<AuthPage />} />
+        <Route path="/auth" element={<AuthPage />} />
 
-      <Route
-        path="/estudiante/*"
-        element={
-          <RegisterRoute>
-            <FormStudentsLayout />
-          </RegisterRoute>
-        }
-      />
+        <Route
+          path="/estudiante/*"
+          element={
+            <RegisterRoute>
+              <FormStudentsLayout />
+            </RegisterRoute>
+          }
+        />
 
-      <Route
-        path="/dashboard/*"
-        element={
-          <PrivateRoute>
-            <Dashboard />
-          </PrivateRoute>
-        }
-      />
+        <Route
+          path="/dashboard/*"
+          element={
+            <PrivateRoute>
+              <Dashboard />
+            </PrivateRoute>
+          }
+        />
 
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </>
   );
 }
 

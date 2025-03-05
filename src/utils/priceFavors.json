@@ -1,0 +1,186 @@
+{
+    "pasajes": {
+      "Sucre": { "minimo": 2, "maximo": 4 },
+      "La Paz": { "minimo": 3, "maximo": 18 },
+      "Cochabamba": { "minimo": 2, "maximo": 4 }
+    },
+    "favores": [
+      {
+        "nombre": "Hacer filas",
+        "categoria": "Rápido",
+        "precios": {
+          "Sucre": [15, 30],
+          "La Paz": [15, 40],
+          "Cochabamba": [15, 35]
+        }
+      },
+      {
+        "nombre": "Recoger pedidos o paquetes",
+        "categoria": "Rápido",
+        "precios": {
+          "Sucre": [10, 40],
+          "La Paz": [15, 50],
+          "Cochabamba": [10, 45]
+        }
+      },
+      {
+        "nombre": "Pasear perros (30 min - 1 hora)",
+        "categoria": "Rápido",
+        "precios": {
+          "Sucre": [20, 30],
+          "La Paz": [20, 40],
+          "Cochabamba": [15, 40]
+        }
+      },
+      {
+        "nombre": "Compras en el mercado o tienda",
+        "categoria": "Rápido",
+        "precios": {
+          "Sucre": [20, 50],
+          "La Paz": [25, 60],
+          "Cochabamba": [20, 55]
+        }
+      },
+      {
+        "nombre": "Manicure y pedicure (esmaltado, cuidado de uñas)",
+        "categoria": "Rápido",
+        "precios": {
+          "Sucre": [25, 50],
+          "La Paz": [30, 50],
+          "Cochabamba": [30, 50]
+        }
+      },
+      {
+        "nombre": "Cocina y catering",
+        "categoria": "Mediana duración",
+        "precios": {
+          "Sucre": [40, 120],
+          "La Paz": [120, 400],
+          "Cochabamba": [40, 120]
+        }
+      },
+      {
+        "nombre": "Entrenador y terapia física",
+        "categoria": "Mediana duración",
+        "precios": {
+          "Sucre": [50, 150],
+          "La Paz": [100, 300],
+          "Cochabamba": [70, 250]
+        }
+      },
+      {
+        "nombre": "Fotografía y video",
+        "categoria": "Mediana duración",
+        "precios": {
+          "Sucre": [50, 150],
+          "La Paz": [150, 500],
+          "Cochabamba": [60, 160]
+        }
+      },
+      {
+        "nombre": "Mudanzas y carga",
+        "categoria": "Mediana duración",
+        "precios": {
+          "Sucre": [50, 120],
+          "La Paz": [50, 150],
+          "Cochabamba": [80, 300]
+        }
+      },
+      {
+        "nombre": "Páginas y tiendas web",
+        "categoria": "Especializado",
+        "precios": {
+          "Sucre": [100, 500],
+          "La Paz": [200, 600],
+          "Cochabamba": [100, 500]
+        }
+      },
+      {
+        "nombre": "Diseño gráfico",
+        "categoria": "Especializado",
+        "precios": {
+          "Sucre": [50, 200],
+          "La Paz": [80, 250],
+          "Cochabamba": [60, 220]
+        }
+      },
+      {
+        "nombre": "Edición de videos o fotos",
+        "categoria": "Especializado",
+        "precios": {
+          "Sucre": [50, 150],
+          "La Paz": [80, 200],
+          "Cochabamba": [60, 160]
+        }
+      },
+      {
+        "nombre": "Cuidado de mascotas (día completo)",
+        "categoria": "Especializado",
+        "precios": {
+          "Sucre": [80, 250],
+          "La Paz": [100, 250],
+          "Cochabamba": [90, 260]
+        }
+      },
+      {
+        "nombre": "Soporte informático",
+        "categoria": "Especializado",
+        "precios": {
+          "Sucre": [40, 100],
+          "La Paz": [50, 120],
+          "Cochabamba": [40, 250]
+        }
+      },
+      {
+        "nombre": "Enfermería",
+        "categoria": "Especializado",
+        "precios": {
+          "Sucre": [50, 120],
+          "La Paz": [80, 200],
+          "Cochabamba": [50, 120]
+        }
+      },
+      {
+        "nombre": "Limpieza profunda de casa o departamento",
+        "categoria": "Especializado",
+        "precios": {
+          "La Paz": [100, 250],
+          "Cochabamba": [55, 130]
+        }
+      },
+      {
+        "nombre": "Cuidado de abuelitos por día",
+        "categoria": "Especializado",
+        "precios": {
+          "La Paz": [100, 250],
+          "Cochabamba": [100, 300]
+        }
+      },
+      {
+        "nombre": "Cuidado de niños por jornada completa",
+        "categoria": "Especializado",
+        "precios": {
+          "La Paz": [100, 250],
+          "Cochabamba": [90, 250]
+        }
+      },
+      {
+        "nombre": "Mecánica básica de autos o motos",
+        "categoria": "Especializado",
+        "precios": {
+          "Sucre": [60, 200],
+          "La Paz": [150, 250],
+          "Cochabamba": [50, 180]
+        }
+      },
+      {
+        "nombre": "Porteo de carga en zonas con difícil acceso",
+        "categoria": "Mediana duración",
+        "precios": {
+          "La Paz": [60, 180],
+          "Cochabamba": [50, 200]
+        }
+      }
+    ]
+  }
+  

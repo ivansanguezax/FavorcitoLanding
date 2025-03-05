@@ -2,39 +2,32 @@ import { Card } from "primereact/card";
 
 const WalletComingSoon = () => {
   return (
-    <Card className="border-0 shadow-sm opacity-70">
-      <div className="flex flex-col items-center py-8 text-center">
-        <div className="mb-6 bg-slate-100 p-6 rounded-full">
-          <i className="pi pi-wallet text-4xl text-primary-dark opacity-70"></i>
-        </div>
-
-        <h2 className="text-2xl font-bold text-neutral-dark mb-2">
-          Billetera Digital
-        </h2>
-
-        <p className="text-neutral-gray mb-6 max-w-md">
-          Pronto podrás gestionar tus ingresos, realizar seguimiento de tus
-          ganancias y mucho más.
-        </p>
-
-        {/* Secciones de wallet simuladas */}
-        <div className="w-full max-w-md space-y-4">
-          <div className="bg-slate-100 p-4 rounded-lg">
-            <h3 className="text-lg font-semibold text-neutral-dark mb-2">
-              Balance Total
-            </h3>
-            <div className="flex justify-between items-center">
-              <span className="text-neutral-gray">Disponible</span>
-              <span className="text-2xl font-bold text-primary-dark">
-                $0.00
-              </span>
-            </div>
+    <Card className="border-0 overflow-hidden">
+      <div className="relative">
+        {/* Fondo decorativo */}
+        <div className="absolute top-0 right-0 w-32 h-32 bg-primary-light/20 rounded-full -mr-10 -mt-10"></div>
+        <div className="absolute bottom-0 left-0 w-40 h-40 bg-primary-light/10 rounded-full -ml-16 -mb-16"></div>
+        
+        <div className="flex flex-col items-center py-10 px-6 text-center relative z-10">
+          {/* Icono principal */}
+          <div className="mb-8 bg-gradient-to-br from-primary-light/30 to-primary-dark/20 p-7 rounded-full shadow-inner">
+            <i className="pi pi-wallet text-5xl text-primary-dark"></i>
           </div>
-        </div>
 
-        <div className="mt-8 px-6 py-3 rounded-lg bg-primary-dark bg-opacity-10 text-primary-dark">
-          <i className="pi pi-info-circle mr-2"></i>
-          <span>Esta función estará disponible próximamente</span>
+          {/* Etiqueta "Próximamente" */}
+          <div className="absolute right-10 top-8 bg-yellow-400 px-3 py-1 rounded-lg transform rotate-12 shadow-sm">
+            <span className="text-sm font-bold text-yellow-900">¡Muy pronto!</span>
+          </div>
+
+          <h2 className="text-2xl font-bold text-primary-dark mb-3">
+            Tu Wallet
+          </h2>
+
+          <p className="text-neutral-dark/80 max-w-md">
+            ¡Pronto podrás administrar tus ingresos por favores realizados!
+          </p>
+
+        
         </div>
       </div>
     </Card>

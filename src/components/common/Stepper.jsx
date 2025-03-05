@@ -41,22 +41,18 @@ const Stepper = ({ activeIndex, onStepClick }) => {
 
   const steps = [
     {
-      label: "Información Personal",
       icon: "pi pi-user",
       description: "Tus datos personales y de contacto",
     },
     {
-      label: "Habilidades",
       icon: "pi pi-star",
       description: "Selecciona los servicios que puedes ofrecer",
     },
     {
-      label: "Información Académica",
       icon: "pi pi-book",
       description: "Datos de tu universidad y carrera",
     },
     {
-      label: "Verificación",
       icon: "pi pi-check",
       description: "Confirma la información ingresada",
     },
@@ -83,9 +79,9 @@ const Stepper = ({ activeIndex, onStepClick }) => {
       <div className="w-full px-4 py-4">
         <div className="relative flex justify-between items-center">
           {/* Progress Line */}
-          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-0.5 bg-neutral-gray">
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-full h-0.5 bg-neutral-gray/30">
             <div
-              className="h-full bg-primary-dark transition-all duration-300"
+              className="h-full bg-primary-dark transition-all duration-500 ease-in-out"
               style={{ width: `${(activeIndex / (steps.length - 1)) * 100}%` }}
             />
           </div>
@@ -102,14 +98,22 @@ const Stepper = ({ activeIndex, onStepClick }) => {
                   w-10 h-10 rounded-full flex items-center justify-center 
                   cursor-pointer transition-all duration-300 z-10
                   ${
-                    index <= activeIndex
+                    index < activeIndex
                       ? "bg-primary-dark text-white"
-                      : "bg-white border-2 border-neutral-gray text-neutral-gray"
+                      : index === activeIndex
+                      ? "bg-primary-dark text-white ring-4 ring-primary-dark/20"
+                      : "bg-white border-2 border-neutral-gray/40 text-neutral-gray/70"
                   }
-                  ${index < activeIndex && "hover:opacity-80"}
+                  ${index < activeIndex && "hover:bg-primary-dark/90 scale-95 hover:scale-100"}
+                  shadow-sm
                 `}
               >
                 <i className={`${step.icon} text-lg`} />
+              </div>
+              
+              {/* Mobile tooltip for description - visible on touch */}
+              <div className="absolute top-12 left-1/2 -translate-x-1/2 bg-white p-2 rounded-md shadow-md text-xs text-center w-24 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                {step.description}
               </div>
             </div>
           ))}
@@ -118,9 +122,9 @@ const Stepper = ({ activeIndex, onStepClick }) => {
     );
   } else {
     return (
-      <div className="h-full flex flex-col py-8 px-6 overflow-hidden">
+      <div className="h-full flex flex-col py-4 px-6">
         {/* Logo arriba de los steps */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-6">
           <img
             src="https://res.cloudinary.com/dfgjenml4/image/upload/v1737657583/logoDark_uvqsz9.png"
             alt="Favorcito Logo"
@@ -128,19 +132,20 @@ const Stepper = ({ activeIndex, onStepClick }) => {
           />
         </div>
 
-        {/* Contenedor principal con overflow hidden para eliminar el scroll */}
-        <div className="flex-grow flex flex-col justify-between overflow-hidden">
-          <div className="relative" ref={stepsContainerRef}>
+        {/* Contenedor principal con altura máxima para evitar scrolling */}
+        <div className="flex-grow flex flex-col justify-between max-h-full">
+          {/* Contenedor de steps con scroll interno si es necesario */}
+          <div className="relative flex-grow overflow-y-auto pr-1" ref={stepsContainerRef}>
             {/* Línea vertical de progreso - Calculada dinámicamente */}
             {lineHeight > 0 && (
               <div
-                className="absolute left-5 top-5 w-0.5 bg-neutral-gray -z-10"
+                className="absolute left-5 top-5 w-0.5 bg-neutral-gray/30 -z-10"
                 style={{
                   height: `${lineHeight}px`,
                 }}
               >
                 <div
-                  className="w-full bg-primary-dark transition-all duration-300"
+                  className="w-full bg-primary-dark transition-all duration-500 ease-in-out"
                   style={{
                     height:
                       activeIndex === 0
@@ -157,84 +162,91 @@ const Stepper = ({ activeIndex, onStepClick }) => {
               </div>
             )}
 
-            {/* Pasos verticales */}
-            <div className="space-y-12">
+            {/* Pasos verticales con espaciado reducido para pantallas pequeñas */}
+            <div className="space-y-8 md:space-y-10">
               {steps.map((step, index) => (
                 <div
                   key={index}
                   className={`
-                    relative flex items-start cursor-pointer
+                    relative flex items-center cursor-pointer group
                     ${
                       index < activeIndex
-                        ? "hover:opacity-90 hover:translate-x-1"
+                        ? "hover:opacity-95 hover:translate-x-1"
                         : ""
                     }
-                    pl-14 pr-4 py-3 rounded-xl transition-all duration-200 
-                    ${index === activeIndex ? "px-10" : ""}
+                    pl-14 pr-4 py-1 rounded-xl transition-all duration-200 
+                    ${index === activeIndex ? "bg-primary-dark/5 backdrop-blur-sm" : ""}
                   `}
                   onClick={() => handleClick(index)}
                 >
-                  {/* Círculo del paso */}
+                  {/* Círculo del paso con animación suave */}
                   <div
                     className={`
                       step-circle
                       absolute left-0 w-10 h-10 rounded-full flex items-center justify-center 
-                      transition-all duration-300 z-10 shadow-sm
+                      transition-all duration-300 z-10 
                       ${
-                        index <= activeIndex
-                          ? "bg-primary-dark text-white"
-                          : "bg-white border-2 border-neutral-gray text-neutral-gray"
+                        index < activeIndex
+                          ? "bg-primary-dark text-white scale-90 group-hover:scale-95"
+                          : index === activeIndex
+                          ? "bg-primary-dark text-white scale-100 ring-4 ring-primary-dark/20"
+                          : "bg-white border-2 border-neutral-gray/40 text-neutral-gray/70"
                       }
-                      ${
-                        index === activeIndex
-                          ? "ring-4 ring-primary-dark/20"
-                          : ""
-                      }
+                      shadow-md
                     `}
                   >
                     <i className={`${step.icon} text-lg`} />
                   </div>
 
-                  {/* Contenido del paso */}
-                  <div className="flex flex-col">
-                    <span
+                  {/* Solo descripción con fuente ligera */}
+                  <div className="flex flex-col py-2">
+                    <span 
                       className={`
-                        font-medium text-base transition-colors duration-300
+                        text-sm font-light transition-colors duration-300
                         ${
                           index <= activeIndex
                             ? "text-neutral-dark"
-                            : "text-neutral-gray"
+                            : "text-neutral-gray/70"
                         }
                       `}
                     >
-                      {step.label}
-                    </span>
-                    <span className="text-sm text-neutral-gray mt-1 opacity-90">
                       {step.description}
                     </span>
                   </div>
+                  
+                  {/* Indicador de completado para pasos anteriores */}
+                  {index < activeIndex && (
+                    <div className="ml-auto">
+                      <i className="pi pi-check-circle text-primary-dark/80 text-sm"></i>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           </div>
 
-          <div className="mt-8 flex flex-col items-center">
-            {/* Indicador de progreso */}
-            <div className="text-sm text-neutral-gray mb-4">
-              {activeIndex + 1} de {steps.length}
+          {/* Footer siempre visible con diseño mejorado */}
+          <div className="mt-4 flex flex-col items-center pt-3 pb-2 bg-white border-t border-neutral-gray/10">
+            {/* Indicador de progreso con estilo mejorado */}
+            <div className="flex items-center space-x-2 mb-3">
+              <div className="h-1 w-16 rounded-full bg-neutral-gray/20 overflow-hidden">
+                <div 
+                  className="h-full bg-primary-dark transition-all duration-500 ease-in-out rounded-full"
+                  style={{ width: `${(activeIndex / (steps.length - 1)) * 100}%` }}
+                ></div>
+              </div>
+              <span className="text-xs text-neutral-gray">
+                {activeIndex + 1} de {steps.length}
+              </span>
             </div>
 
             {/* Link de "Ya tengo una cuenta" con mejor UI */}
-            <div className="flex items-center mt-2">
-              <div className="h-px w-16 bg-neutral-gray/20"></div>
-              <button
-                onClick={handleLoginClick}
-                className="mx-3 text-primary-dark font-medium text-sm hover:text-primary-dark/80 transition-colors"
-              >
-                Ya tengo una cuenta
-              </button>
-              <div className="h-px w-16 bg-neutral-gray/20"></div>
-            </div>
+            <button
+              onClick={handleLoginClick}
+              className="text-primary-dark font-medium text-xs hover:text-primary-dark/80 transition-colors py-1 px-4 rounded-full border border-primary-dark/20 hover:border-primary-dark/40 hover:bg-primary-dark/5"
+            >
+              Ya tengo una cuenta
+            </button>
           </div>
         </div>
       </div>
