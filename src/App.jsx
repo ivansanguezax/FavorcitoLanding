@@ -15,16 +15,13 @@ import Dashboard from "./layout/DashboardLayout";
 import { useAuth } from "./context/AuthContext";
 import AuthPage from "./layout/AuthPage";
 import PropTypes from "prop-types";
+import Loader from "./components/Main/Loader";
 
 const PrivateRoute = ({ children }) => {
   const { currentUser, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-slate-100">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-primary-dark"></div>
-      </div>
-    );
+    return <Loader />;
   }
 
   if (!currentUser) {
@@ -42,21 +39,14 @@ const RegisterRoute = ({ children }) => {
   const { currentUser, userExists, loading } = useAuth();
   const navigate = useNavigate();
 
-  // Este useEffect impedirá que un usuario registrado vuelva a la página de registro
   useEffect(() => {
-    // Si el usuario ya está registrado y trata de acceder a la ruta de registro
     if (currentUser && userExists) {
-      // Reemplazar la entrada en el historial para que no pueda volver al formulario
       navigate("/dashboard", { replace: true });
     }
   }, [currentUser, userExists, navigate]);
 
   if (loading) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-slate-100">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-primary-dark"></div>
-      </div>
-    );
+    return <Loader />;
   }
 
   if (currentUser && userExists) {
@@ -78,11 +68,7 @@ const HomeRoute = ({ children }) => {
   const { currentUser, userExists, loading } = useAuth();
 
   if (loading) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-slate-100">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-primary-dark"></div>
-      </div>
-    );
+    return <Loader />;
   }
 
   if (currentUser && userExists) {

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "primereact/button";
 import { useAuth } from "../context/AuthContext";
 import { Mixpanel } from "../services/mixpanel";
+import Loader from "../components/Main/Loader";
 
 const AuthPage = () => {
   const { currentUser, userExists, loading, signInWithGoogle } = useAuth();
@@ -111,11 +112,7 @@ const AuthPage = () => {
   };
 
   if (loading) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center bg-neutral-100">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-primary-dark"></div>
-      </div>
-    );
+    return <Loader />;
   }
 
   const renderCarouselIndicators = () => {
@@ -138,14 +135,14 @@ const AuthPage = () => {
   return (
     <div className="flex flex-col md:flex-row h-screen w-full overflow-hidden">
       {/* Mobile Layout (only visible on mobile) */}
-      <div className="md:hidden flex flex-col h-full bg-primary-dark">
-        {/* Top image carousel */}
-        <div className="h-2/3 relative overflow-hidden bg-neutral-800">
+      <div className="md:hidden flex flex-col h-screen bg-primary-dark">
+        {/* Top image carousel - 70% height para la imagen */}
+        <div className="h-[70%] relative overflow-hidden bg-neutral-800">
           <div className="absolute inset-0 transition-opacity duration-1000">
             <img
               src={carouselData[currentSlide].image}
               alt={carouselData[currentSlide].title}
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover object-center"
             />
           </div>
           
@@ -156,7 +153,7 @@ const AuthPage = () => {
               className="bg-white/20 hover:bg-white/30 rounded-full p-2 text-white"
               aria-label="Previous slide"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="15 18 9 12 15 6"></polyline>
               </svg>
             </button>
@@ -165,20 +162,20 @@ const AuthPage = () => {
               className="bg-white/20 hover:bg-white/30 rounded-full p-2 text-white"
               aria-label="Next slide"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="9 18 15 12 9 6"></polyline>
               </svg>
             </button>
           </div>
           
           {/* Mobile Carousel Indicators */}
-          <div className="absolute bottom-4 left-0 right-0 flex justify-center">
-            <div className="flex space-x-2">
+          <div className="absolute bottom-2 left-0 right-0 flex justify-center">
+            <div className="flex space-x-1">
               {carouselData.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentSlide(index)}
-                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
                     currentSlide === index ? "bg-white w-4" : "bg-white/40"
                   }`}
                   aria-label={`Go to slide ${index + 1}`}
@@ -188,56 +185,58 @@ const AuthPage = () => {
           </div>
         </div>
 
-        {/* Bottom auth content with curved top and shadow */}
-        <div className="h-1/3 flex flex-col px-6 bg-primary-dark rounded-t-3xl  relative -mt-4 z-10 justify-between">
-          {/* Logo */}
-          <div className="flex justify-center mt-4">
-            <img
-              src="https://res.cloudinary.com/dfgjenml4/image/upload/v1737657600/logoLigth_gbv7ds.png"
-              alt="Favorcito Logo"
-              className="h-6"
-            />
-          </div>
+        {/* Bottom auth content with curved top - 30% height */}
+        <div className="h-[30%] flex flex-col px-6 bg-primary-dark rounded-t-3xl relative -mt-4 z-10">
+          <div className="flex flex-col h-full justify-evenly py-2">
+            {/* Logo */}
+            <div className="flex justify-center">
+              <img
+                src="https://res.cloudinary.com/dfgjenml4/image/upload/v1737657600/logoLigth_gbv7ds.png"
+                alt="Favorcito Logo"
+                className="h-6"
+              />
+            </div>
 
-          {/* Welcome Message */}
-          <div className="text-center">
-            <h1 className="text-xl text-white font-light">
-              ¡Comparte tus habilidades!
-            </h1>
-          </div>
+            {/* Welcome Message */}
+            <div className="text-center">
+              <h1 className="text-sm text-white font-light">
+                ¡Comparte tus habilidades!
+              </h1>
+            </div>
 
-          {/* Auth Buttons Container */}
-          <div className="flex flex-col mb-4">
-            {/* Google Sign in button */}
-            <Button
-              onClick={() => handleLoginWithGoogle(true)}
-              disabled={authLoading}
-              className="p-button-secondary w-full flex items-center justify-center gap-2 bg-primary-light text-primary-dark border-none rounded-lg p-2.5 hover:bg-opacity-90 transition-colors font-medium"
-            >
-              {authLoading ? (
-                <i className="pi pi-spin pi-spinner mr-2"></i>
-              ) : (
-                <img
-                  src="https://cdn-icons-png.flaticon.com/512/2991/2991148.png"
-                  alt="Google"
-                  className="w-5 h-5 bg-white p-0.5 rounded-full font-light mr-2"
-                />
-              )}
-              <span>
-                {authLoading ? "Cargando..." : "¡Comienza con Google!"}
-              </span>
-            </Button>
+            {/* Auth Buttons Container */}
+            <div className="flex flex-col">
+              {/* Google Sign in button */}
+              <Button
+                onClick={() => handleLoginWithGoogle(true)}
+                disabled={authLoading}
+                className="p-button-secondary w-full flex items-center justify-center gap-2 bg-primary-light text-primary-dark border-none rounded-lg p-2 hover:bg-opacity-90 transition-colors font-medium mb-3"
+              >
+                {authLoading ? (
+                  <i className="pi pi-spin pi-spinner mr-2"></i>
+                ) : (
+                  <img
+                    src="https://cdn-icons-png.flaticon.com/512/2991/2991148.png"
+                    alt="Google"
+                    className="w-5 h-5 bg-white p-0.5 rounded-full font-light mr-2"
+                  />
+                )}
+                <span>
+                  {authLoading ? "Cargando..." : "¡Comienza con Google!"}
+                </span>
+              </Button>
 
-            <div className="text-center mt-3">
-              <p className="text-sm font-light text-white">
-                ¿Ya tienes una cuenta?
-                <Button
-                  onClick={() => handleLoginWithGoogle(false)}
-                  disabled={authLoading}
-                  className="p-button-text p-button-plain text-primary-light font-light hover:underline p-0 ml-1"
-                  label={authLoading ? "Cargando..." : "Iniciar sesión"}
-                />
-              </p>
+              <div className="text-center mt-2">
+                <p className="text-sm font-light text-white">
+                  ¿Ya tienes una cuenta?
+                  <Button
+                    onClick={() => handleLoginWithGoogle(false)}
+                    disabled={authLoading}
+                    className="p-button-text p-button-plain text-primary-light font-light hover:underline p-0 ml-1"
+                    label={authLoading ? "Cargando..." : "Iniciar sesión"}
+                  />
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -249,7 +248,7 @@ const AuthPage = () => {
           <img
             src={carouselData[currentSlide].image}
             alt={carouselData[currentSlide].title}
-            className="w-full h-full object-cover opacity-30"
+            className="w-full h-full object-cover object-center opacity-30"
           />
         </div>
 
