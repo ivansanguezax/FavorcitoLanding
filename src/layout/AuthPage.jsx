@@ -132,7 +132,7 @@ const AuthPage = () => {
       {/* Mobile Layout (only visible on mobile) */}
       <div className="md:hidden flex flex-col h-screen bg-neutral-100">
         {/* Top image carousel - 60% of screen height */}
-        <div className="h-[60%] relative overflow-hidden bg-neutral-800">
+        <div className="h-[70%] relative overflow-hidden bg-neutral-800">
           <div className="absolute inset-0 transition-opacity duration-1000">
             <img
               src={carouselData[currentSlide].image}
@@ -143,7 +143,7 @@ const AuthPage = () => {
         </div>
 
         {/* Bottom auth content with curved top and shadow */}
-        <div className="h-[50%] flex flex-col px-6 bg-primary-dark rounded-t-3xl shadow-xl relative -mt-4 z-10">
+        <div className="h-[35%] flex flex-col px-6 bg-primary-dark rounded-t-3xl shadow-xl relative -mt-4 z-10">
           {/* Logo */}
           <div className="flex justify-center mt-8 mb-6">
             <img
@@ -155,12 +155,10 @@ const AuthPage = () => {
 
           {/* Welcome Message */}
           <div className="text-center mb-8">
-            <h1 className="text-xl mb-2 text-white font-light">
+            <h1 className="text-xl  text-white font-light">
               ¡Comparte tus habilidades!
             </h1>
-            <p className="text-white text-xs">
-              Únete como estudiante y comienza a ofrecer tus servicios
-            </p>
+
           </div>
 
           {/* Google Sign in button */}
