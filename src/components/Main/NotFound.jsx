@@ -1,7 +1,6 @@
-// src/components/NotFound.jsx
-import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
-import { Helmet } from 'react-helmet-async';
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 
 const NotFound = () => {
   const navigate = useNavigate();
@@ -10,7 +9,10 @@ const NotFound = () => {
     <>
       <Helmet>
         <title>Página no encontrada | Favorcito</title>
-        <meta name="description" content="Lo sentimos, la página que buscas no existe. Explora los servicios disponibles de Favorcito." />
+        <meta
+          name="description"
+          content="Lo sentimos, la página que buscas no existe. Explora los servicios disponibles de Favorcito."
+        />
       </Helmet>
 
       <div className="min-h-screen flex flex-col items-center justify-center bg-neutral-light px-4 py-16">
@@ -37,15 +39,16 @@ const NotFound = () => {
             <h1 className="text-3xl font-bold text-primary-dark mb-4">
               ¡Ups! Este favorcito no está disponible 😬
             </h1>
-            
+
             <p className="text-neutral-dark mb-8">
-              Parece que esta página se tomó un descanso… pero no te preocupes, aún hay muchos estudiantes listos para ayudarte.
+              Parece que esta página se tomó un descanso… pero no te preocupes,
+              aún hay muchos estudiantes listos para ayudarte.
             </p>
-            
+
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => navigate('/')}
+              onClick={() => navigate("/")}
               className="px-6 py-3 bg-primary-dark text-white rounded-full font-medium hover:bg-opacity-90 transition-all duration-300 flex items-center justify-center gap-2 mx-auto"
             >
               <span>✨ Ver favorcitos disponibles</span>

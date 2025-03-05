@@ -17,7 +17,7 @@ export const Hero = () => {
   const navigate = useNavigate();
 
   const handleStudentRegister = () => {
-    navigate('/estudiante');
+    navigate('/auth');
   };
 
   return (

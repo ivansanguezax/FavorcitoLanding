@@ -1,15 +1,15 @@
-import  { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 
 const Loader = () => {
   const [currentPhrase, setCurrentPhrase] = useState(0);
-  
+
   const phrases = [
     "Buscando al universitario perfecto",
     "Cargando favores con dedicación estudiantil",
     "En un momento conectamos la ayuda que necesitas",
     "¿Sabías que cada Favorcito ayuda a un estudiante a crecer?",
-    "Haciendo match entre tu tarea y el talento joven"
+    "Haciendo match entre tu tarea y el talento joven",
   ];
 
   useEffect(() => {
@@ -31,10 +31,10 @@ const Loader = () => {
       <motion.img
         initial={{ scale: 0.9, opacity: 0, y: 10 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
-        transition={{ 
+        transition={{
           duration: 0.8,
           ease: "easeOut",
-          opacity: { duration: 0.4 }
+          opacity: { duration: 0.4 },
         }}
         src="https://res.cloudinary.com/dfgjenml4/image/upload/v1737657600/logoLigth_gbv7ds.png"
         alt="Logo"
@@ -43,9 +43,9 @@ const Loader = () => {
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ 
+        transition={{
           duration: 0.5,
-          delay: 0.3
+          delay: 0.3,
         }}
         className="text-center max-w-[280px] sm:max-w-sm md:max-w-md lg:max-w-lg"
       >

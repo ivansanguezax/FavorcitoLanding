@@ -1,127 +1,68 @@
 import { useState, useEffect, useRef } from "react";
 import { InputText } from "primereact/inputtext";
-import { Calendar } from "primereact/calendar";
 import { Button } from "primereact/button";
 import { InputMask } from "primereact/inputmask";
 import { Dropdown } from "primereact/dropdown";
+import { Calendar } from "primereact/calendar";
 import { Toast } from "primereact/toast";
 import { Dialog } from "primereact/dialog";
-import { ProgressSpinner } from "primereact/progressspinner";
 import PropTypes from "prop-types";
-import fileService from "../../services/fileService";
-import zonasData from "../../utils/zonas.json"; // Importamos las zonas desde el JSON
+import zonasData from "../../utils/zonas.json";
+import { useAuth } from "../../context/AuthContext";
+import { Mixpanel } from "../../services/mixpanel";
 
-const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
+const PersonalInfo = ({ formData, updateFormData, onNext }) => {
+  const { currentUser, signOut } = useAuth();
   const [minDate, setMinDate] = useState(new Date());
   const [maxDate, setMaxDate] = useState(new Date());
   const toast = useRef(null);
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  const [dragActive, setDragActive] = useState(false);
-  const [preview, setPreview] = useState(null);
-  const [isUploading, setIsUploading] = useState(false);
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [uploadSuccess, setUploadSuccess] = useState(false);
-  const fileInputRef = useRef(null);
-  const dropZoneRef = useRef(null);
-  const [distritos, setDistritos] = useState([]);
   const [customZona, setCustomZona] = useState("");
   const [showCustomZona, setShowCustomZona] = useState(false);
+  const [showSwitchAccountDialog, setShowSwitchAccountDialog] = useState(false);
+  const [welcomeShown, setWelcomeShown] = useState(false);
 
-  // Definimos las ciudades usando las que están en el JSON
   const cities = Object.keys(zonasData.Bolivia).map((city) => ({
     label: city,
     value: city,
   }));
 
-  // Función para verificar si la ciudad es Sucre
-  const isSucre = () => formData.city === "Sucre";
-
-  // Función para obtener los distritos de Sucre
-  const getDistritosOptions = () => {
-    if (formData.city !== "Sucre") return [];
-    
-    // Obtener los distritos para Sucre
-    return Object.keys(zonasData.Bolivia.Sucre).map(distrito => ({
-      label: distrito,
-      value: distrito
-    }));
-  };
-
-  // Función para obtener las zonas según la ciudad seleccionada
   const getZonasOptions = () => {
     if (!formData.city) return [];
 
-    // Caso especial para Sucre
-    if (formData.city === "Sucre") {
-      if (!formData.distrito) return [];
-      
-      // Obtenemos las zonas del distrito seleccionado
-      const distritoData = zonasData.Bolivia.Sucre[formData.distrito];
-      
-      // Si el distrito tiene subzonas (es un objeto)
-      if (typeof distritoData === 'object' && !Array.isArray(distritoData)) {
-        return Object.keys(distritoData).map(zona => ({
-          label: zona,
-          value: zona
-        }));
-      }
-      
-      // Si el distrito tiene zonas directamente (es un array)
-      if (Array.isArray(distritoData)) {
-        return distritoData.map(zona => ({
-          label: zona,
-          value: zona
-        }));
-      }
-      
-      return [];
-    }
-    
-    // Caso normal para otras ciudades
     const zonasForCity = zonasData.Bolivia[formData.city] || [];
 
-    // Convertir el array de strings a array de objetos para Dropdown
-    return zonasForCity.map((zona) => ({
-      label: zona,
-      value: zona,
-    }));
-  };
+    if (typeof zonasForCity === "object" && !Array.isArray(zonasForCity)) {
+      const flattenedZonas = [];
 
-  // Función para manejar la selección de distrito en Sucre
-  const handleDistritoChange = (e) => {
-    updateFormData({
-      ...formData,
-      distrito: e.value,
-      zona: null // Resetear la zona al cambiar el distrito
-    });
-  };
+      Object.values(zonasForCity).forEach((distritos) => {
+        Object.entries(distritos).forEach(([distrito, zonas]) => {
+          if (Array.isArray(zonas)) {
+            zonas.forEach((zona) => {
+              flattenedZonas.push(`${distrito} - ${zona}`);
+            });
+          }
+        });
+      });
 
-  // Función para obtener subzonas en Sucre si es necesario
-  const getSubzonasOptions = () => {
-    if (!formData.city === "Sucre" || !formData.distrito || !formData.zona) return [];
-    
-    const distritoData = zonasData.Bolivia.Sucre[formData.distrito];
-    
-    // Si es un objeto, entonces tiene subzonas
-    if (typeof distritoData === 'object' && !Array.isArray(distritoData)) {
-      const zonasData = distritoData[formData.zona];
-      if (Array.isArray(zonasData)) {
-        return zonasData.map(subzona => ({
-          label: subzona,
-          value: subzona
-        }));
-      }
+      return flattenedZonas.map((zona) => ({
+        label: zona,
+        value: zona,
+      }));
     }
-    
-    return [];
+
+    return Array.isArray(zonasForCity)
+      ? zonasForCity.map((zona) => ({
+          label: zona,
+          value: zona,
+        }))
+      : [];
   };
 
-  // Función para aplicar una zona personalizada
   const applyCustomZona = () => {
     if (customZona.trim()) {
       updateFormData({
         ...formData,
-        zona: customZona.trim()
+        zona: customZona.trim(),
       });
       setShowCustomZona(false);
       setCustomZona("");
@@ -135,50 +76,40 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
     }
   };
 
+  const handleSwitchAccount = async () => {
+    try {
+      await signOut();
+      Mixpanel.track("User_Switch_Account");
+    } catch (error) {
+      console.error("Error al cerrar sesión:", error);
+    }
+  };
+
   useEffect(() => {
-    // Calcular fecha mínima (exactamente 25 años atrás)
     const twentyFiveYearsAgo = new Date();
     twentyFiveYearsAgo.setFullYear(twentyFiveYearsAgo.getFullYear() - 25);
     twentyFiveYearsAgo.setHours(0, 0, 0, 0);
 
-    // Calcular fecha máxima (exactamente 18 años atrás)
     const eighteenYearsAgo = new Date();
     eighteenYearsAgo.setFullYear(eighteenYearsAgo.getFullYear() - 18);
     eighteenYearsAgo.setHours(23, 59, 59, 999);
 
-    // Guardar ambas fechas en el estado
     setMinDate(twentyFiveYearsAgo);
     setMaxDate(eighteenYearsAgo);
-
-    // Cargar datos del localStorage si están disponibles
-    const savedData = localStorage.getItem("studentFormData");
-    if (savedData) {
-      try {
-        const parsedData = JSON.parse(savedData);
-        if (parsedData && Object.keys(parsedData).length > 0) {
-          updateFormData(parsedData);
-
-          // Si ya hay un QR cargado, actualizar el estado
-          if (parsedData.qrCode) {
-            setPreview("Archivo cargado previamente");
-          }
-        }
-      } catch (error) {
-        console.error("Error parsing saved form data:", error);
-      }
-    }
   }, []);
 
-  // Actualizar los distritos cuando cambia la ciudad
   useEffect(() => {
-    if (formData.city === "Sucre") {
-      setDistritos(getDistritosOptions());
-    }
-    // Resetear la zona personalizada si cambia la ciudad
-    setShowCustomZona(false);
-  }, [formData.city]);
+    if (currentUser && !welcomeShown && toast.current) {
+      updateFormData({
+        ...formData,
+        fullName: currentUser.displayName || formData.fullName,
+        email: currentUser.email || formData.email,
+      });
 
-  // Save to localStorage whenever formData changes
+      setWelcomeShown(true);
+    }
+  }, [currentUser, welcomeShown]);
+
   useEffect(() => {
     if (Object.keys(formData).length > 0) {
       localStorage.setItem("studentFormData", JSON.stringify(formData));
@@ -190,7 +121,8 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
 
     if (typeof date === "string" && date.match(/^\d{4}-\d{2}-\d{2}$/)) {
       const [year, month, day] = date.split("-").map(Number);
-      return new Date(year, month - 1, day);
+      const formattedDate = new Date(Date.UTC(year, month - 1, day));
+      return formattedDate;
     }
 
     const d = new Date(date);
@@ -235,19 +167,8 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
       return false;
     }
 
-    // Validación especial para Sucre
-    if (formData.city === "Sucre" && !formData.distrito) {
-      showError("Distrito es requerido");
-      return false;
-    }
-
     if (!formData.zona) {
       showError("Zona es requerida");
-      return false;
-    }
-
-    if (!formData.address || formData.address.trim() === "") {
-      showError("Dirección es requerida");
       return false;
     }
 
@@ -272,11 +193,9 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
         return false;
       }
 
-      // Arreglar el manejo de la fecha para evitar problemas de zona horaria
       let formattedDate = formData.bornDate;
 
       if (formData.bornDate instanceof Date) {
-        // Crear una fecha que preserva el día, mes y año exactos sin ajuste de zona horaria
         const d = new Date(formData.bornDate);
         formattedDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
           2,
@@ -292,626 +211,427 @@ const PersonalInfo = ({ formData, updateFormData, onNext, onPrevious }) => {
         phone: formData.phone,
         city: formData.city,
         zona: formData.zona,
-        // Incluir distrito si la ciudad es Sucre
-        ...(formData.city === "Sucre" ? { distrito: formData.distrito } : {})
+        address: formData.zona,
       };
 
-      // Update form data
+      Mixpanel.track("Personal_Info_Completed", {
+        city: formData.city,
+        has_google_info: !!currentUser,
+      });
+
       updateFormData(updatedData);
 
-      // Save to localStorage
       localStorage.setItem("studentFormData", JSON.stringify(updatedData));
 
-      // Move to next step
       onNext();
     }
   };
 
-  // QR Upload handlers
-  const handleFile = (file) => {
-    if (file) {
-      setSelectedFile(file);
-      setUploadSuccess(false);
-
-      // Show preview of selected file
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const confirmUpload = async () => {
-    if (!selectedFile) {
-      toast.current.show({
-        severity: "warn",
-        summary: "No hay archivo",
-        detail: "Por favor selecciona un archivo primero",
-        life: 3000,
-      });
-      return;
-    }
-
-    try {
-      setIsUploading(true);
-      // Generate unique ID for the file name
-      const uniqueId = Date.now().toString();
-
-      // Convert to base64 and upload
-      const base64String = await fileService.fileToBase64(selectedFile);
-      const imageUrl = await fileService.uploadImage(base64String, uniqueId);
-
-      // Update form data with the returned URL
-      updateFormData({
-        ...formData,
-        qrCode: imageUrl,
-      });
-
-      setUploadSuccess(true);
-
-      // Wait 1.5 seconds to show success message before closing
-      setTimeout(() => {
-        setShowUploadModal(false);
-        toast.current.show({
-          severity: "success",
-          summary: "Carga exitosa",
-          detail: "Tu código QR se ha cargado correctamente",
-          life: 3000,
-        });
-      }, 1500);
-    } catch (error) {
-      console.error("Error uploading file:", error);
-      toast.current.show({
-        severity: "error",
-        summary: "Error en la carga",
-        detail:
-          "No se pudo cargar tu código QR. Por favor, intenta nuevamente.",
-        life: 5000,
-      });
-      setIsUploading(false);
-    }
-  };
-
-  const handleDrop = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFile(e.dataTransfer.files[0]);
-      // Abre el popup modal para mostrar la vista previa
-      setShowUploadModal(true);
-    }
-  };
-
-  const handleDragOver = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(true);
-  };
-
-  const handleDragLeave = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-  };
-
-  const handleChange = (e) => {
-    e.preventDefault();
-    if (e.target.files && e.target.files[0]) {
-      handleFile(e.target.files[0]);
-      // Abre el popup si se selecciona un archivo
-      setShowUploadModal(true);
-    }
-  };
-
-  const handleQRBoxClick = () => {
-    setShowUploadModal(true);
-  };
-
-  // Custom footer for the upload dialog
-  const renderDialogFooter = () => {
-    if (isUploading) return null;
-    if (uploadSuccess) return null;
-
+  if (!currentUser) {
     return (
-      <div className="flex justify-end gap-3 p-3 bg-gray-50 rounded-b-lg">
-        <Button
-          label="Cancelar"
-          icon="pi pi-times"
-          onClick={() => !isUploading && setShowUploadModal(false)}
-          className="px-4 py-2 border border-neutral-gray text-neutral-dark hover:bg-gray-100 transition-colors rounded-lg"
-        />
-        <Button
-          label="Subir código QR"
-          icon="pi pi-upload"
-          onClick={confirmUpload}
-          className="px-4 py-2 bg-primary-dark text-white hover:bg-primary-dark/90 transition-colors rounded-lg"
-          disabled={!selectedFile}
-        />
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-primary-dark"></div>
       </div>
     );
-  };
-
-  // Custom styles for dropdowns
-  const dropdownClassName =
-    "w-full border-2 border-neutral-gray rounded-lg focus:border-primary-dark";
+  }
 
   return (
     <div className="flex flex-col space-y-8">
       <Toast ref={toast} />
 
-      <h2 className="text-2xl font-semibold text-center text-neutral-dark">
-        Información Personal
-      </h2>
+      {/* Header con foto de perfil y título */}
+      <div className="flex flex-col items-center">
+        <div className="mb-4 relative">
+          <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary-light to-primary-dark opacity-20 blur-md"></div>
+          <div className="relative z-10">
+            <img
+              src={
+                currentUser?.photoURL ||
+                "https://res.cloudinary.com/dfgjenml4/image/upload/v1739926023/Mask_group_rvnwra.png"
+              }
+              alt="Perfil de estudiante"
+              className="w-24 h-24 object-cover rounded-full border-4 border-white shadow-md"
+              onError={(e) => {
+                e.target.src =
+                  "https://res.cloudinary.com/dfgjenml4/image/upload/v1739926023/Mask_group_rvnwra.png";
+              }}
+            />
+          </div>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-        <div className="flex flex-col space-y-2">
-          <label htmlFor="fullName" className="text-neutral-dark font-medium">
-            Nombre completo <span className="text-red-500">*</span>
-          </label>
-          <InputText
-            id="fullName"
-            value={formData.fullName || ""}
-            onChange={(e) =>
-              updateFormData({
-                ...formData,
-                fullName: e.target.value,
-              })
-            }
-            className="w-full border-2 border-neutral-gray rounded-lg px-4 py-2.5 h-12"
-            placeholder="Ingresa tu nombre completo"
+        <div className="flex items-center gap-3">
+          <h2 className="text-2xl font-semibold text-primary-dark">
+            Información Personal
+          </h2>
+          <Button
+            icon="pi pi-users"
+            rounded
+            tooltip="Cambiar cuenta"
+            className="bg-primary-dark text-white hover:bg-primary-dark/90 p-2 shadow-sm"
+            onClick={() => setShowSwitchAccountDialog(true)}
           />
         </div>
 
-        <div className="flex flex-col space-y-2">
-          <label htmlFor="bornDate" className="text-neutral-dark font-medium">
-            Fecha de nacimiento <span className="text-red-500">*</span>
-          </label>
-          <div className="relative">
-            <Calendar
-              id="bornDate"
-              value={formatDate(formData.bornDate)}
+        <p className="text-center text-neutral-dark/70 mt-2 max-w-md">
+          Estos datos nos ayudarán a personalizar tu experiencia
+        </p>
+      </div>
+
+      {/* Mensaje de bienvenida */}
+      <div className="bg-gradient-to-r from-primary-light/20 to-primary-light/10 rounded-xl p-5 flex items-start gap-4 border border-primary-dark/10 shadow-sm">
+        <div className="w-10 h-10 rounded-full bg-primary-dark/10 flex items-center justify-center flex-shrink-0">
+          <i className="pi pi-info-circle text-primary-dark"></i>
+        </div>
+        <div>
+          <h3 className="font-medium text-primary-dark mb-1">
+            ¡Hola {currentUser.displayName || "Estudiante"}!
+          </h3>
+          <p className="text-neutral-dark text-sm">
+            Ya hemos obtenido algunos datos de tu cuenta de Google. Por favor,
+            completa la información restante para continuar con tu registro como
+            prestador de servicios.
+          </p>
+        </div>
+      </div>
+
+      {/* Formulario principal */}
+      <div className="space-y-8 bg-white rounded-xl shadow-sm border border-neutral-gray/10 p-6">
+        {/* Nombre y correo (lado a lado en desktop) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+          <div className="flex flex-col space-y-2">
+            <label
+              htmlFor="fullName"
+              className="text-neutral-dark font-medium flex items-center"
+            >
+              Nombre completo <span className="text-red-500 ml-1">*</span>
+              <span className="ml-auto bg-green-50 px-2 py-0.5 rounded-full text-xs text-green-700 flex items-center">
+                <i className="pi pi-check text-xs mr-1"></i>Verificado
+              </span>
+            </label>
+            <div className="relative">
+              <InputText
+                id="fullName"
+                value={formData.fullName || ""}
+                onChange={(e) =>
+                  updateFormData({
+                    ...formData,
+                    fullName: e.target.value,
+                  })
+                }
+                className="w-full border-2 bg-neutral-light/50 border-neutral-gray/30 rounded-lg px-4 py-2.5 h-12"
+                placeholder="Ingresa tu nombre completo"
+                disabled={true}
+              />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                <i className="pi pi-check-circle text-green-500"></i>
+              </div>
+            </div>
+            <p className="text-xs text-neutral-dark/60">
+              Obtenido de tu cuenta de Google
+            </p>
+          </div>
+
+          <div className="flex flex-col space-y-2">
+            <label
+              htmlFor="email"
+              className="text-neutral-dark font-medium flex items-center"
+            >
+              Correo electrónico <span className="text-red-500 ml-1">*</span>
+              <span className="ml-auto bg-green-50 px-2 py-0.5 rounded-full text-xs text-green-700 flex items-center">
+                <i className="pi pi-check text-xs mr-1"></i>Verificado
+              </span>
+            </label>
+            <div className="relative">
+              <InputText
+                id="email"
+                value={formData.email || ""}
+                onChange={(e) =>
+                  updateFormData({
+                    ...formData,
+                    email: e.target.value,
+                  })
+                }
+                className="w-full border-2 bg-neutral-light/50 border-neutral-gray/30 rounded-lg px-4 py-2.5 h-12"
+                placeholder="correo@ejemplo.com"
+                type="email"
+                disabled={true}
+              />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                <i className="pi pi-check-circle text-green-500"></i>
+              </div>
+            </div>
+            <p className="text-xs text-neutral-dark/60">
+              Obtenido de tu cuenta de Google
+            </p>
+          </div>
+        </div>
+
+        {/* Fecha de nacimiento y teléfono (lado a lado en desktop) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+          <div className="flex flex-col space-y-2">
+            <label
+              htmlFor="bornDate"
+              className="text-neutral-dark font-medium flex items-center"
+            >
+              Fecha de nacimiento <span className="text-red-500 ml-1">*</span>
+            </label>
+            <div className="relative">
+              <Calendar
+                id="bornDate"
+                value={formatDate(formData.bornDate)}
+                onChange={(e) =>
+                  updateFormData({
+                    ...formData,
+                    bornDate: e.value,
+                  })
+                }
+                showIcon
+                minDate={minDate}
+                maxDate={maxDate}
+                dateFormat="dd/mm/yy"
+                className="w-full"
+                inputClassName="w-full border-2 border-neutral-gray rounded-lg px-4 py-2.5 h-12"
+                panelClassName="border border-neutral-gray rounded-xl shadow-lg p-2"
+                view="date"
+                viewDate={new Date(new Date().getFullYear() - 20, 0, 1)}
+                yearNavigator
+                yearRange={`${new Date().getFullYear() - 25}:${
+                  new Date().getFullYear() - 18
+                }`}
+              />
+            </div>
+            <p className="text-xs text-neutral-dark/60">
+              Debes tener entre 18 y 25 años para registrarte
+            </p>
+          </div>
+
+          <div className="flex flex-col space-y-2">
+            <label
+              htmlFor="phone"
+              className="text-neutral-dark font-medium flex items-center"
+            >
+              Número de teléfono <span className="text-red-500 ml-1">*</span>
+            </label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-dark/70 flex items-center">
+                +591
+                <span className="mx-2 h-4 w-px bg-neutral-gray/30"></span>
+              </span>
+              <InputMask
+                id="phone"
+                value={formData.phone || ""}
+                onChange={(e) =>
+                  updateFormData({
+                    ...formData,
+                    phone: e.target.value,
+                  })
+                }
+                mask="99999999"
+                placeholder="75528888"
+                className="w-full border-2 border-neutral-gray rounded-lg pl-20 pr-4 py-2.5 h-12"
+              />
+            </div>
+            <p className="text-xs text-neutral-dark/60">
+              Ingresa solo los 8 dígitos sin código de país
+            </p>
+          </div>
+        </div>
+
+        {/* Ciudad y zona (lado a lado en desktop) */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 pt-2">
+          <div className="flex flex-col space-y-2">
+            <label
+              htmlFor="city"
+              className="text-neutral-dark font-medium flex items-center"
+            >
+              Ciudad <span className="text-red-500 ml-1">*</span>
+            </label>
+            <Dropdown
+              id="city"
+              value={formData.city || ""}
               onChange={(e) =>
                 updateFormData({
                   ...formData,
-                  bornDate: e.value,
+                  city: e.value,
+                  zona: null, // Reset zona when city changes
                 })
               }
-              showIcon
-              minDate={minDate}
-              maxDate={maxDate}
-              dateFormat="dd/mm/yy"
-              className="w-full"
-              inputClassName="w-full border-2 border-neutral-gray rounded-lg px-4 py-2.5 h-12"
-              panelClassName="border border-neutral-gray rounded-lg shadow-lg p-2"
-              view="date"
-              viewDate={new Date(new Date().getFullYear() - 20, 0, 1)}
-              yearNavigator
-              yearRange={`${new Date().getFullYear() - 25}:${
-                new Date().getFullYear() - 18
-              }`}
-            />
-          </div>
-        </div>
-
-        <div className="flex flex-col space-y-2">
-          <label htmlFor="email" className="text-neutral-dark font-medium">
-            Correo electrónico <span className="text-red-500">*</span>
-          </label>
-          <InputText
-            id="email"
-            value={formData.email || ""}
-            onChange={(e) =>
-              updateFormData({
-                ...formData,
-                email: e.target.value,
-              })
-            }
-            className="w-full border-2 border-neutral-gray rounded-lg px-4 py-2.5 h-12"
-            placeholder="correo@ejemplo.com"
-            type="email"
-          />
-        </div>
-
-        <div className="flex flex-col space-y-2">
-          <label htmlFor="phone" className="text-neutral-dark font-medium">
-            Número de teléfono <span className="text-red-500">*</span>
-          </label>
-          <InputMask
-            id="phone"
-            value={formData.phone || ""}
-            onChange={(e) =>
-              updateFormData({
-                ...formData,
-                phone: e.target.value,
-              })
-            }
-            mask="99999999"
-            placeholder="75528888"
-            className="w-full border-2 border-neutral-gray rounded-lg px-4 py-2.5 h-12"
-          />
-        </div>
-
-        <div className="flex flex-col space-y-2">
-          <label htmlFor="city" className="text-neutral-dark font-medium">
-            Ciudad <span className="text-red-500">*</span>
-          </label>
-          <Dropdown
-            id="city"
-            value={formData.city || ""}
-            onChange={(e) =>
-              updateFormData({
-                ...formData,
-                city: e.value,
-                zona: null, // Reset zona when city changes
-                distrito: null, // Reset distrito when city changes
-              })
-            }
-            options={cities}
-            placeholder="Selecciona tu ciudad"
-            className={dropdownClassName}
-            filter
-            filterInputAutoFocus
-            showFilterClear
-            panelClassName="border border-neutral-gray rounded-lg shadow-lg"
-          />
-        </div>
-
-        {/* Mostrar selección de distrito solo para Sucre */}
-        {isSucre() && (
-          <div className="flex flex-col space-y-2">
-            <label htmlFor="distrito" className="text-neutral-dark font-medium">
-              Distrito <span className="text-red-500">*</span>
-            </label>
-            <Dropdown
-              id="distrito"
-              value={formData.distrito || ""}
-              onChange={handleDistritoChange}
-              options={distritos}
-              placeholder="Selecciona un distrito"
-              className={dropdownClassName}
+              options={cities}
+              placeholder="Selecciona tu ciudad"
+              className="w-full border-2 border-neutral-gray rounded-lg"
               filter
               filterInputAutoFocus
               showFilterClear
-              panelClassName="border border-neutral-gray rounded-lg shadow-lg"
+              panelClassName="border border-neutral-gray rounded-xl shadow-lg"
             />
-          </div>
-        )}
-
-        <div className={`flex flex-col space-y-2 ${isSucre() ? 'md:col-span-2' : ''}`}>
-          <div className="flex justify-between items-center">
-            <label htmlFor="zona" className="text-neutral-dark font-medium">
-              Zona <span className="text-red-500">*</span>
-            </label>
-            <Button
-              type="button"
-              label="No encuentro mi zona"
-              className="p-button-text p-button-sm text-primary-dark"
-              onClick={() => setShowCustomZona(true)}
-            />
-          </div>
-          
-          {!showCustomZona ? (
-  <div className="relative">
-    {formData.zona && !getZonasOptions().some(option => option.value === formData.zona) ? (
-      <div className="w-full border-2 border-neutral-gray rounded-lg px-4 py-2.5 h-12 flex items-center justify-between">
-        <span>{formData.zona}</span>
-        <Button
-          icon="pi pi-pencil"
-          className="p-button-text p-button-sm"
-          onClick={() => {
-            setCustomZona(formData.zona);
-            setShowCustomZona(true);
-          }}
-        />
-      </div>
-    ) : (
-      <Dropdown
-        id="zona"
-        value={formData.zona || ""} 
-        onChange={(e) =>
-          updateFormData({
-            ...formData,
-            zona: e.value,
-          })
-        }
-        options={getZonasOptions()}
-        placeholder={
-          isSucre() 
-            ? formData.distrito 
-              ? "Selecciona tu zona" 
-              : "Primero selecciona un distrito"
-            : formData.city
-              ? "Selecciona tu zona"
-              : "Primero selecciona una ciudad"
-        }
-        className={dropdownClassName}
-        filter={true}
-        filterInputAutoFocus={true}
-        showFilterClear={true}
-        panelClassName="border border-neutral-gray rounded-lg shadow-lg"
-        disabled={isSucre() ? !formData.distrito : !formData.city}
-      />
-    )}
-  </div>
-) : (
-            <div className="flex gap-2">
-              <InputText
-                value={customZona}
-                onChange={(e) => setCustomZona(e.target.value)}
-                placeholder="Ingresa el nombre de tu zona"
-                className="flex-1 border-2 border-neutral-gray rounded-lg px-4 py-2.5 h-12"
-              />
-              <Button
-                icon="pi pi-check"
-                onClick={applyCustomZona}
-                className="px-4 py-2 bg-primary-dark text-white hover:bg-primary-dark/90 transition-colors rounded-lg"
-                disabled={!customZona.trim()}
-              />
-              <Button
-                icon="pi pi-times"
-                onClick={() => setShowCustomZona(false)}
-                className="px-4 py-2 border border-neutral-gray text-neutral-dark hover:bg-gray-100 transition-colors rounded-lg"
-              />
-            </div>
-          )}
-        </div>
-
-        <div className="flex flex-col space-y-2 md:col-span-2">
-          <label htmlFor="address" className="text-neutral-dark font-medium">
-            Dirección <span className="text-red-500">*</span>
-          </label>
-          <InputText
-            id="address"
-            value={formData.address || ""}
-            onChange={(e) =>
-              updateFormData({
-                ...formData,
-                address: e.target.value,
-              })
-            }
-            className="w-full border-2 border-neutral-gray rounded-lg px-4 py-2.5 h-12"
-            placeholder="Dirección exacta (calle, número, zona)"
-          />
-          <p className="text-xs text-neutral-gray mt-1">
-            * Tu dirección se usará para conectarte con solicitudes de servicios
-            cercanos a tu ubicación
-          </p>
-        </div>
-
-        <div className="flex flex-col space-y-2 md:col-span-2 mt-4">
-          <label className="text-neutral-dark font-medium">
-            QR de pago <span className="text-neutral-gray">(opcional)</span>
-          </label>
-          <div
-            ref={dropZoneRef}
-            onClick={handleQRBoxClick}
-            className="border-2 border-dashed border-neutral-gray rounded-lg p-4 cursor-pointer hover:border-primary-dark hover:bg-primary-light/5 transition-all"
-            onDrop={handleDrop}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-          >
-            {formData.qrCode ? (
-              <div className="flex items-center space-x-4">
-                <div className="bg-green-50 p-2 rounded-full">
-                  <i className="pi pi-credit-card text-2xl text-green-500"></i>
-                </div>
-                <div className="flex-1">
-                  <span className="text-neutral-dark font-medium">
-                    Código QR cargado correctamente
-                  </span>
-                  <p className="text-xs text-neutral-gray mt-1">
-                    Haz clic para cambiar el código si lo necesitas
-                  </p>
-                </div>
-                <Button
-                  icon="pi pi-pencil"
-                  className="p-button-rounded p-button-outlined p-button-sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowUploadModal(true);
-                  }}
-                />
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-4">
-                <i className="pi pi-credit-card text-4xl text-neutral-gray mb-2"></i>
-                <p className="text-neutral-dark font-medium">
-                  Subir QR para recibir pagos
-                </p>
-                <p className="text-sm text-neutral-gray mt-1">
-                  Arrastra y suelta o haz clic para seleccionar
-                </p>
-              </div>
-            )}
-          </div>
-          <p className="text-xs text-neutral-gray mt-1">
-            * Sube el QR de tu cuenta bancaria o billetera móvil para recibir
-            pagos por tus servicios
-          </p>
-        </div>
-      </div>
-
-      <div className=" px-3 py-4 flex flex-col-reverse sm:flex-row justify-between gap-3">
-        <Button
-          label="Atrás"
-          icon="pi pi-arrow-left"
-          onClick={onPrevious}
-          className="px-6 py-3 text-primary-dark border-2 border-primary-dark hover:bg-primary-dark hover:text-white transition-all duration-200"
-        />
-        <Button
-          label="Siguiente"
-          icon="pi pi-arrow-right"
-          onClick={handleNext}
-          className="px-6 py-3 text-primary-dark border-2 border-primary-dark hover:bg-primary-dark hover:text-white transition-all duration-200"
-        />
-      </div>
-
-      {/* Modal para ingreso de zona personalizada */}
-      <Dialog
-        visible={showCustomZona && !showUploadModal}
-        onHide={() => setShowCustomZona(false)}
-        header="Agregar zona personalizada"
-        footer={
-          <div className="flex justify-end gap-3">
-            <Button
-              label="Cancelar"
-              icon="pi pi-times"
-              onClick={() => setShowCustomZona(false)}
-              className="px-4 py-2 border border-neutral-gray text-neutral-dark hover:bg-gray-100 transition-colors rounded-lg"
-            />
-            <Button
-              label="Guardar"
-              icon="pi pi-check"
-              onClick={applyCustomZona}
-              className="px-4 py-2 bg-primary-dark text-white hover:bg-primary-dark/90 transition-colors rounded-lg"
-              disabled={!customZona.trim()}
-            />
-          </div>
-        }
-        className="w-full max-w-md"
-      >
-        <div className="p-4">
-          <p className="mb-4 text-neutral-dark">
-            Si no encuentras tu zona en la lista, puedes agregarla manualmente:
-          </p>
-          <InputText
-            value={customZona}
-            onChange={(e) => setCustomZona(e.target.value)}
-            className="w-full border-2 border-neutral-gray rounded-lg px-4 py-2.5 h-12"
-            placeholder="Nombre de tu zona"
-          />
-        </div>
-      </Dialog>
-
-      <Dialog
-        visible={showUploadModal}
-        onHide={() =>
-          !isUploading && !uploadSuccess && setShowUploadModal(false)
-        }
-        header={uploadSuccess ? null : "Subir código QR de pago"}
-        footer={renderDialogFooter()}
-        className="w-full max-w-2xl overflow-hidden rounded-lg"
-        closable={!isUploading && !uploadSuccess}
-        showHeader={!uploadSuccess}
-        contentClassName="p-0"
-        headerClassName="bg-white border-b border-neutral-gray p-4"
-      >
-        {isUploading ? (
-          <div className="flex flex-col items-center justify-center p-8 bg-white">
-            <ProgressSpinner
-              style={{ width: "60px", height: "60px" }}
-              strokeWidth="4"
-              animationDuration=".5s"
-            />
-            <p className="mt-6 text-center text-neutral-dark font-medium">
-              Subiendo tu código QR, por favor espera...
-            </p>
-            <p className="mt-2 text-center text-neutral-gray text-sm">
-              Esto puede tomar unos segundos
+            <p className="text-xs text-neutral-dark/60">
+              Elige la ciudad donde brindarás tus servicios
             </p>
           </div>
-        ) : uploadSuccess ? (
-          <div className="flex flex-col items-center justify-center p-8 bg-green-50">
-            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4">
-              <i className="pi pi-check-circle text-4xl text-green-500"></i>
-            </div>
-            <h3 className="text-xl font-medium text-green-800 mb-2">
-              ¡Código QR subido con éxito!
-            </h3>
-            <p className="text-center text-green-700 mb-6">
-              Tu código de pago ha sido cargado correctamente
-            </p>
-          </div>
-        ) : (
-          <div className="p-6 bg-white">
-            <div
-              ref={fileInputRef}
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              className={`relative border-2 border-dashed rounded-lg p-8 transition-colors
-                ${
-                  dragActive
-                    ? "border-primary-dark bg-primary-light/10"
-                    : "border-neutral-gray"
-                }`}
-            >
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleChange}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              />
-              {preview ? (
-                <div className="flex flex-col items-center">
-                  <div className="relative mb-4 p-2 bg-white shadow-md rounded-lg">
-                    <img
-                      src={preview}
-                      alt="Vista previa"
-                      className="max-h-56 max-w-full object-contain rounded"
-                    />
-                    <div className="absolute top-2 right-2">
-                      <Button
-                        icon="pi pi-times"
-                        className="p-button-rounded p-button-danger p-button-sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setPreview(null);
-                          setSelectedFile(null);
-                          toast.current.show({
-                            severity: "info",
-                            summary: "Archivo eliminado",
-                            detail:
-                              "Asegúrate de mostrar el lado donde está tu código QR cuando agregues un nuevo documento",
-                            life: 5000,
-                          });
-                        }}
-                      />
-                    </div>
-                  </div>
-                  <p className="text-sm text-neutral-dark text-center">
-                    Haz clic en "Subir código QR" para cargar esta imagen
-                  </p>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center text-center">
-                  <div className="bg-primary-light/10 p-4 rounded-full mb-4">
-                    <i className="pi pi-credit-card text-4xl text-primary-dark"></i>
-                  </div>
-                  <p className="text-lg font-medium text-neutral-dark mb-2">
-                    Arrastra y suelta tu código QR aquí
-                  </p>
-                  <p className="text-sm text-neutral-gray mb-4">
-                    o haz clic para seleccionar
-                  </p>
-                  <div className="flex gap-3 mb-4">
-                    <div className="flex items-center px-3 py-2 bg-gray-50 rounded-lg">
-                      <i className="pi pi-image text-blue-500 mr-2"></i>
-                      <span className="text-sm">JPG</span>
-                    </div>
-                    <div className="flex items-center px-3 py-2 bg-gray-50 rounded-lg">
-                      <i className="pi pi-image text-green-500 mr-2"></i>
-                      <span className="text-sm">PNG</span>
-                    </div>
-                  </div>
-                  <p className="text-xs text-neutral-gray mt-2">
-                    Tamaño máximo: 25MB
-                  </p>
-                  <div className="mt-6 p-3 bg-blue-50 rounded-lg max-w-sm">
-                    <p className="text-xs text-blue-700">
-                      <i className="pi pi-info-circle mr-1"></i>
-                      Asegúrate de que tu código QR es legible y corresponde a
-                      la cuenta donde quieres recibir los pagos
-                    </p>
-                  </div>
-                </div>
+
+          {/* Zona */}
+          <div className="flex flex-col space-y-2">
+            <div className="flex justify-between items-center">
+              <label
+                htmlFor="zona"
+                className="text-neutral-dark font-medium flex items-center"
+              >
+                Zona <span className="text-red-500 ml-1">*</span>
+              </label>
+              {!showCustomZona && (
+                <button
+                  type="button"
+                  onClick={() => setShowCustomZona(true)}
+                  className="text-xs text-primary-dark font-medium flex items-center"
+                >
+                  <i className="pi pi-plus-circle mr-1"></i>
+                  No encuentro mi zona
+                </button>
               )}
             </div>
+
+            {!showCustomZona ? (
+              <div className="relative">
+                {formData.zona &&
+                !getZonasOptions().some(
+                  (option) => option.value === formData.zona
+                ) ? (
+                  <div className="w-full border-2 border-neutral-gray rounded-lg px-4 py-2.5 h-12 flex items-center justify-between">
+                    <span>{formData.zona}</span>
+                    <Button
+                      icon="pi pi-pencil"
+                      className="p-button-text p-button-sm"
+                      onClick={() => {
+                        setCustomZona(formData.zona);
+                        setShowCustomZona(true);
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <Dropdown
+                    id="zona"
+                    value={formData.zona || ""}
+                    onChange={(e) =>
+                      updateFormData({
+                        ...formData,
+                        zona: e.value,
+                      })
+                    }
+                    options={getZonasOptions()}
+                    placeholder={
+                      formData.city
+                        ? "Selecciona tu zona"
+                        : "Primero selecciona una ciudad"
+                    }
+                    className="w-full border-2 border-neutral-gray rounded-lg"
+                    filter={true}
+                    filterInputAutoFocus={true}
+                    showFilterClear={true}
+                    panelClassName="border border-neutral-gray rounded-xl shadow-lg"
+                    disabled={!formData.city}
+                  />
+                )}
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <InputText
+                  value={customZona}
+                  onChange={(e) => setCustomZona(e.target.value)}
+                  placeholder="Ingresa el nombre de tu zona"
+                  className="flex-1 border-2 border-neutral-gray rounded-lg px-4 py-2.5 h-12"
+                />
+                <Button
+                  icon="pi pi-check"
+                  onClick={applyCustomZona}
+                  className="px-4 py-2 bg-primary-dark text-white hover:bg-primary-dark/90 transition-colors rounded-lg"
+                  disabled={!customZona.trim()}
+                />
+                <Button
+                  icon="pi pi-times"
+                  onClick={() => setShowCustomZona(false)}
+                  className="px-4 py-2 border border-neutral-gray text-neutral-dark hover:bg-gray-100 transition-colors rounded-lg"
+                />
+              </div>
+            )}
+            <p className="text-xs text-neutral-dark/60">
+              Selecciona la zona donde ofreces tus servicios
+            </p>
           </div>
-        )}
+        </div>
+      </div>
+
+      {/* Botón continuar (a la derecha en desktop, full width en mobile) */}
+      <div className="flex justify-end mt-2">
+        <Button
+          label="Continuar"
+          icon="pi pi-arrow-right"
+          iconPos="right"
+          onClick={handleNext}
+          className="w-full sm:w-auto px-10 py-3 bg-primary-dark text-white hover:bg-primary-dark/90 transition-all duration-200 rounded-lg shadow-sm"
+        />
+      </div>
+
+      {/* Diálogo para cambiar de cuenta */}
+      <Dialog
+        visible={showSwitchAccountDialog}
+        onHide={() => setShowSwitchAccountDialog(false)}
+        header="Cambiar cuenta"
+        className="w-full max-w-md rounded-xl shadow-lg overflow-hidden"
+        headerClassName="bg-white border-b border-neutral-gray/10 p-4"
+        contentClassName="p-0"
+        footer={
+          <div className="flex justify-end gap-3 p-4 border-t border-neutral-gray/10 bg-neutral-light/30">
+            <Button
+              label="Cancelar"
+              className="px-4 py-2 border border-neutral-gray text-neutral-dark font-medium rounded-lg hover:bg-neutral-light"
+              onClick={() => setShowSwitchAccountDialog(false)}
+            />
+            <Button
+              label="Cambiar cuenta"
+              icon="pi pi-sign-out"
+              className="px-4 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700"
+              onClick={handleSwitchAccount}
+            />
+          </div>
+        }
+      >
+        <div className="p-6">
+          <div className="mb-6 text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-red-50 rounded-full mb-4">
+              <i className="pi pi-user-minus text-red-500 text-2xl"></i>
+            </div>
+            <h3 className="text-lg font-semibold text-neutral-dark mb-1">
+              ¿Cambiar de cuenta?
+            </h3>
+            <p className="text-sm text-neutral-dark/70 max-w-xs mx-auto">
+              Esto cerrará la sesión actual e iniciará con otra cuenta de Google
+            </p>
+          </div>
+
+          <div className="bg-neutral-light/40 rounded-lg p-4 flex items-center gap-4 border border-neutral-gray/20">
+            <img
+              src={currentUser.photoURL || "https://via.placeholder.com/40"}
+              alt="Current account"
+              className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
+            />
+            <div>
+              <p className="font-medium text-neutral-dark">
+                {currentUser.displayName}
+              </p>
+              <p className="text-sm text-neutral-dark/70">
+                {currentUser.email}
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-4 flex items-start gap-3 bg-blue-50 p-3 rounded-lg border border-blue-100">
+            <i className="pi pi-info-circle text-blue-500 mt-0.5"></i>
+            <p className="text-sm text-blue-700">
+              Todos los datos ingresados se guardarán automáticamente y estarán
+              disponibles cuando vuelvas a iniciar sesión.
+            </p>
+          </div>
+        </div>
       </Dialog>
     </div>
   );
@@ -921,7 +641,6 @@ PersonalInfo.propTypes = {
   formData: PropTypes.object.isRequired,
   updateFormData: PropTypes.func.isRequired,
   onNext: PropTypes.func.isRequired,
-  onPrevious: PropTypes.func.isRequired,
 };
 
 export default PersonalInfo;

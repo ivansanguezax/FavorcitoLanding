@@ -1,4 +1,3 @@
-// src/components/Main/Testimonials.jsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -64,7 +63,6 @@ export const Testimonials = ({ autoplay = true }) => {
 
   useEffect(() => {
     if (autoplay) {
-      // Aumentar el tiempo a 8 segundos para dar más tiempo de lectura
       const interval = setInterval(handleNext, 8000);
       return () => clearInterval(interval);
     }
@@ -75,7 +73,7 @@ export const Testimonials = ({ autoplay = true }) => {
   };
 
   return (
-<section className="py-16 bg-neutral-light mt-32 md:mt-24 relative z-10">
+    <section className="py-16 bg-neutral-light mt-32 md:mt-24 relative z-10">
       <div className="container mx-auto px-4">
         {/* Título y subtítulo mejorados */}
         <div className="text-center mb-12">
@@ -91,7 +89,7 @@ export const Testimonials = ({ autoplay = true }) => {
         <div className="max-w-sm md:max-w-4xl mx-auto antialiased font-sans px-4 md:px-8 lg:px-12">
           <div className="relative grid grid-cols-1 md:grid-cols-2 gap-20">
             <div>
-            <div className="relative h-80 w-full z-10">
+              <div className="relative h-80 w-full z-10">
                 <AnimatePresence>
                   {testimonials.map((testimonial, index) => (
                     <motion.div
@@ -108,8 +106,8 @@ export const Testimonials = ({ autoplay = true }) => {
                         z: isActive(index) ? 0 : -100,
                         rotate: isActive(index) ? 0 : randomRotateY(),
                         zIndex: isActive(index)
-                        ? 10  
-                        : testimonials.length + 2 - index,                      
+                          ? 10
+                          : testimonials.length + 2 - index,
                         y: isActive(index) ? [0, -80, 0] : 0,
                       }}
                       exit={{

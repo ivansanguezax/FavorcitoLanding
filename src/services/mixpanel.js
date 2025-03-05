@@ -1,13 +1,11 @@
-import mixpanel from 'mixpanel-browser';
+import mixpanel from "mixpanel-browser";
 
-// Inicializar Mixpanel con tu token
-mixpanel.init('b961edcc392ca662d297925d99c0f547', {
-  debug: import.meta.env.MODE !== 'production', 
+mixpanel.init("b961edcc392ca662d297925d99c0f547", {
+  debug: import.meta.env.MODE !== "production",
   track_pageview: true,
-  persistence: 'localStorage'
+  persistence: "localStorage",
 });
 
-// Wrapper para las funciones de Mixpanel
 export const Mixpanel = {
   identify: (id) => {
     mixpanel.identify(id);

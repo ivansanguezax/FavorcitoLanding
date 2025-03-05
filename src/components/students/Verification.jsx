@@ -4,12 +4,12 @@ import { Dialog } from "primereact/dialog";
 import PropTypes from "prop-types";
 import { useNavigate } from "react-router-dom";
 import { Mixpanel } from "../../services/mixpanel";
+import { useAuth } from "../../context/AuthContext";
 
 const Verification = ({ formData, onPrevious, onSubmit }) => {
+  const { currentUser } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showProcessingDialog, setShowProcessingDialog] = useState(false);
-  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
-  const [countdown, setCountdown] = useState(30);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -23,25 +23,10 @@ const Verification = ({ formData, onPrevious, onSubmit }) => {
     }
   }, []);
 
-  useEffect(() => {
-    let timer;
-    if (showSuccessDialog && countdown > 0) {
-      timer = setTimeout(() => setCountdown(countdown - 1), 1000);
-    } else if (showSuccessDialog && countdown === 0) {
-      // Cerrar el diálogo
-      setShowSuccessDialog(false);
-      // Redirigir al home
-      navigate("/");
-    }
-
-    return () => clearTimeout(timer);
-  }, [showSuccessDialog, countdown, navigate]);
-
   const formatDate = (dateString) => {
     if (!dateString) return "No especificado";
 
     try {
-      // Si es una fecha en formato YYYY-MM-DD
       if (
         typeof dateString === "string" &&
         dateString.match(/^\d{4}-\d{2}-\d{2}$/)
@@ -53,7 +38,7 @@ const Verification = ({ formData, onPrevious, onSubmit }) => {
           year: "numeric",
           month: "long",
           day: "numeric",
-          timeZone: "UTC", // Importante para preservar el día exacto
+          timeZone: "UTC",
         });
       }
 
@@ -71,102 +56,39 @@ const Verification = ({ formData, onPrevious, onSubmit }) => {
     }
   };
 
-  // Obtener solo las primeras N habilidades
-  const getSkillsHighlights = () => {
-    if (!formData.skills || formData.skills.length === 0) {
-      return "No especificadas";
-    }
-
-    const displaySkills = formData.skills.slice(0, 3);
-    const hasMore = formData.skills.length > 3;
-
-    return hasMore
-      ? `${displaySkills.join(", ")} y más`
-      : displaySkills.join(", ");
-  };
-
-  const getDetailedAvailability = () => {
-    if (
-      !formData.availability ||
-      Object.keys(formData.availability).length === 0
-    ) {
-      return <p className="pl-6 text-neutral-dark">No especificada</p>;
-    }
-
-    // Filtramos solo los días que tienen horarios asignados
-    const daysWithSchedules = Object.entries(formData.availability).filter(
-      ([times]) => times && times.length > 0
-    );
-
-    if (daysWithSchedules.length === 0) {
-      return <p className="pl-6 text-neutral-dark">No especificada</p>;
-    }
-
-    return (
-      <div className="pl-6 space-y-2">
-        {daysWithSchedules.map(([day, times]) => (
-          <div
-            key={day}
-            className="border border-gray-100 rounded-lg p-3 bg-white shadow-sm"
-          >
-            <div className="flex items-center mb-2">
-              <div className="h-8 w-8 rounded-full bg-primary-dark/10 flex items-center justify-center mr-2">
-                <i className="pi pi-calendar text-primary-dark text-sm"></i>
-              </div>
-              <h5 className="font-medium text-neutral-dark">{day}</h5>
-            </div>
-            <div className="flex flex-wrap gap-1 pl-10">
-              {times.map((time, index) => (
-                <span
-                  key={index}
-                  className="text-xs font-medium px-2 py-1 rounded-md bg-gray-50 text-gray-700 border border-gray-100"
-                >
-                  {time.label || time}
-                </span>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  };
-
   const handleSubmitWithFeedback = async () => {
     // Prevent multiple submissions
     if (isSubmitting) return;
-  
+
     setIsSubmitting(true);
     setShowProcessingDialog(true);
-  
+
     Mixpanel.track("Form_Submit_Attempt", {
       total_skills: formData.skills?.length || 0,
-      total_days: Object.keys(formData.availability || {}).length
+      total_days: Object.keys(formData.availability || {}).length,
     });
-    
-  
+
     try {
       await onSubmit();
-  
-// Para Form_Submit_Success
-Mixpanel.track("Form_Submit_Success", {
-  university: formData.university,
-  city: formData.city,
-  total_skills: formData.skills?.length || 0
-});
-  
+
+      Mixpanel.track("Form_Submit_Success", {
+        university: formData.university,
+        city: formData.city,
+        total_skills: formData.skills?.length || 0,
+      });
+
       setTimeout(() => {
         setShowProcessingDialog(false);
-        setShowSuccessDialog(true);
-        setCountdown(30);
+        navigate("/dashboard");
       }, 1500);
     } catch (error) {
       console.error("Error al enviar la solicitud:", error);
-      
+
       // Trackear el evento de error en el envío
       Mixpanel.track("Form_Submit_Error", {
-        error_message: error.message || "Unknown error"
+        error_message: error.message || "Unknown error",
       });
-      
+
       setShowProcessingDialog(false);
       setIsSubmitting(false);
     }
@@ -177,48 +99,52 @@ Mixpanel.track("Form_Submit_Success", {
       visible={showProcessingDialog}
       closable={false}
       showHeader={false}
-      className="border-none"
+      className="border-none shadow-xl"
       contentClassName="p-0"
       style={{
         width: "100%",
         maxWidth: "450px",
         borderRadius: "16px",
         overflow: "hidden",
-        boxShadow:
-          "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05)",
       }}
     >
-      <div className="bg-white py-10 px-8 flex flex-col items-center">
+      <div className="bg-gradient-to-br from-white to-primary-light/10 py-10 px-8 flex flex-col items-center">
         {/* Spinner de carga elegante */}
-        <div className="relative w-20 h-20 mb-8">
+        <div className="relative w-24 h-24 mb-8">
           {/* Anillo exterior */}
           <div className="absolute inset-0 border-4 border-gray-100 rounded-full"></div>
 
           {/* Anillo de progreso giratorio */}
           <div className="absolute inset-0 border-4 border-transparent border-t-primary-dark rounded-full animate-spin"></div>
 
+          {/* Segundo anillo de progreso giratorio (más lento) */}
+          <div
+            className="absolute inset-0 border-4 border-transparent border-r-primary-dark/30 rounded-full animate-spin"
+            style={{ animationDuration: "3s" }}
+          ></div>
+
           {/* Círculo central */}
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="w-12 h-12 bg-primary-dark/5 rounded-full flex items-center justify-center">
+            <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center shadow-sm">
               <i className="pi pi-clock text-xl text-primary-dark"></i>
             </div>
           </div>
         </div>
 
-        <h3 className="text-2xl font-semibold text-gray-800 mb-3 text-center">
+        <h3 className="text-2xl font-semibold text-primary-dark mb-3 text-center">
           Procesando
         </h3>
 
-        <p className="text-center text-gray-600 mb-6 max-w-xs">
+        <p className="text-center text-neutral-dark mb-6 max-w-xs">
           Estamos verificando y procesando tu información. Esto solo tomará unos
           momentos.
         </p>
 
         {/* Barra de progreso horizontal con animación */}
-        <div className="w-full max-w-xs h-1.5 bg-gray-100 rounded-full overflow-hidden">
+        <div className="w-full max-w-xs h-2 bg-gray-100 rounded-full overflow-hidden shadow-inner">
           <div className="relative w-full h-full">
             <div
-              className="absolute h-full bg-primary-dark rounded-full"
+              className="absolute h-full bg-gradient-to-r from-primary-dark/80 to-primary-dark rounded-full"
               style={{
                 width: "30%",
                 animation: "indeterminateProgress 1.5s infinite ease-in-out",
@@ -227,7 +153,7 @@ Mixpanel.track("Form_Submit_Success", {
           </div>
         </div>
 
-        <style jsx>{`
+        <style>{`
           @keyframes indeterminateProgress {
             0% {
               left: -30%;
@@ -241,183 +167,53 @@ Mixpanel.track("Form_Submit_Success", {
     </Dialog>
   );
 
-  const renderSuccessDialog = () => (
-    <Dialog
-      visible={showSuccessDialog}
-      closable={false}
-      showHeader={false}
-      className="border-none"
-      contentClassName="p-0"
-      style={{
-        width: "100%",
-        maxWidth: "480px",
-        borderRadius: "16px",
-        overflow: "hidden",
-        boxShadow:
-          "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05)",
-      }}
-    >
-      <div className="bg-white">
-        {/* Encabezado con icono de éxito */}
-        <div className="pt-10 pb-6 px-8 flex justify-center">
-          <div className="relative">
-            {/* Círculo base */}
-            <div className="w-24 h-24 bg-green-50 rounded-full flex items-center justify-center">
-              {/* Círculo decorativo externo */}
-              <div className="absolute w-full h-full rounded-full border-8 border-green-100"></div>
-
-              {/* Icono de éxito */}
-              <i className="pi pi-check text-3xl text-green-500"></i>
-            </div>
-
-            {/* Elementos decorativos alrededor */}
-            <span className="absolute top-0 right-0 w-4 h-4 bg-green-100 rounded-full transform translate-x-1/2 -translate-y-1/2"></span>
-            <span className="absolute bottom-1 left-0 w-3 h-3 bg-green-200 rounded-full transform -translate-x-1/2 translate-y-1/4"></span>
-          </div>
-        </div>
-
-        {/* Línea divisoria sutil */}
-        <div className="w-24 h-px bg-gray-200 mx-auto"></div>
-
-        {/* Contenido principal */}
-        <div className="pt-6 pb-4 px-8">
-          <h2 className="text-2xl font-bold text-gray-800 text-center mb-4">
-            ¡Registro completado!
-          </h2>
-
-          <p className="text-center text-gray-600 mb-6 max-w-md mx-auto">
-            Hemos recibido tu solicitud correctamente. Nuestro equipo revisará
-            tu información y activará tu cuenta lo antes posible.
-          </p>
-
-          <div className="bg-gray-50 border border-gray-100 rounded-xl p-5 mb-6">
-            <div className="flex items-start mb-4">
-              <div className="flex-shrink-0 w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center mr-4">
-                <i className="pi pi-envelope text-blue-500"></i>
-              </div>
-              <div>
-                <h4 className="text-base font-medium text-gray-800 mb-1">
-                  Notificación por email
-                </h4>
-                <p className="text-sm text-gray-600">
-                  Te enviaremos un correo electrónico cuando tu cuenta esté
-                  activa y lista para usar.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start">
-              <div className="flex-shrink-0 w-10 h-10 bg-blue-50 rounded-lg flex items-center justify-center mr-4">
-                <i className="pi pi-compass text-blue-500"></i>
-              </div>
-              <div>
-                <h4 className="text-base font-medium text-gray-800 mb-1">
-                  Mientras tanto
-                </h4>
-                <p className="text-sm text-gray-600">
-                  Puedes explorar los servicios disponibles en nuestra
-                  plataforma.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Pie del diálogo con contador de 30 segundos */}
-        <div className="bg-gray-50 py-4 px-8 border-t border-gray-100">
-          <div className="flex items-center justify-between">
-            <div className="text-sm text-gray-500">
-              Serás redirigido automáticamente
-            </div>
-
-            <div className="flex items-center">
-              <div className="w-16 h-16 relative mr-2">
-                <svg className="w-full h-full" viewBox="0 0 100 100">
-                  {/* Círculo base */}
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="40"
-                    fill="none"
-                    stroke="#e5e7eb"
-                    strokeWidth="10"
-                  />
-
-                  {/* Círculo de progreso animado - ajustado para 30 segundos */}
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="40"
-                    fill="none"
-                    stroke="#2563eb"
-                    strokeWidth="10"
-                    strokeLinecap="round"
-                    strokeDasharray="251.2"
-                    strokeDashoffset={251.2 * (1 - countdown / 30)}
-                    transform="rotate(-90 50 50)"
-                    style={{
-                      transition: "stroke-dashoffset 1s linear",
-                    }}
-                  />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <span className="text-sm font-medium text-gray-700">
-                    {countdown}
-                  </span>
-                </div>
-              </div>
-
-              <button
-                className="py-2 px-4 bg-blue-500 text-white rounded-lg text-sm font-medium hover:bg-blue-600 transition-colors"
-                onClick={() => {
-                  setCountdown(0);
-                }}
-              >
-                Continuar
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-    </Dialog>
-  );
-
   return (
     <div className="flex flex-col space-y-8">
       <h2 className="text-2xl font-semibold text-center text-neutral-dark">
         Verificación de Datos
       </h2>
 
-      <div className="bg-white rounded-xl shadow-md overflow-hidden max-w-3xl mx-auto">
-        <div className="bg-slate-300 p-6">
+      <p className="text-center text-neutral-dark/80 -mt-4 max-w-md mx-auto">
+        Revisa tu información antes de confirmar el registro
+      </p>
+
+      <div className="bg-white rounded-xl shadow-md overflow-hidden max-w-3xl mx-auto border border-neutral-gray/10">
+        {/* Header con gradiente y avatar */}
+        <div className="bg-gradient-to-r from-primary-dark/5 to-primary-light/30 p-6">
           <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-            {/* Imagen de perfil */}
+            {/* Imagen de perfil con mejor sombra y borde */}
             <div className="flex-shrink-0">
-              <img
-                src="https://res.cloudinary.com/dfgjenml4/image/upload/v1739926023/Mask_group_rvnwra.png"
-                alt="Perfil de estudiante"
-                className="w-24 h-24 object-cover rounded-full border-2 border-white shadow-md"
-              />
+              <div className="w-24 h-24 rounded-full relative">
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-primary-light to-primary-dark opacity-30 blur-md"></div>
+                <img
+                  src={
+                    currentUser?.photoURL ||
+                    "https://res.cloudinary.com/dfgjenml4/image/upload/v1739926023/Mask_group_rvnwra.png"
+                  }
+                  alt="Perfil de estudiante"
+                  className="w-24 h-24 object-cover rounded-full border-2 border-white shadow-md relative z-10"
+                  onError={(e) => {
+                    e.target.src =
+                      "https://res.cloudinary.com/dfgjenml4/image/upload/v1739926023/Mask_group_rvnwra.png";
+                  }}
+                />
+              </div>
             </div>
 
             {/* Información principal */}
             <div className="flex-1 text-center sm:text-left">
-              <h3 className="text-xl font-bold text-neutral-dark">
+              <h3 className="text-xl font-bold text-primary-dark">
                 {formData.fullName || "Estudiante"}
               </h3>
-              <p className="text-black mt-1">
-                {formData.university || "Universidad"} •{" "}
-                {formData.year ? `${formData.year}° año` : ""}
-              </p>
-              <p className="text-neutral-dark mt-1">
-                {formData.degree || "Carrera no especificada"}
+              <p className="text-neutral-dark/90 mt-2">
+                Carrera en proceso de validación
               </p>
               <div className="mt-3 flex flex-wrap justify-center sm:justify-start gap-2">
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary-dark/10 text-primary-dark">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary-dark/10 text-primary-dark border border-primary-dark/10">
                   <i className="pi pi-map-marker mr-1"></i>
                   {formData.city || "Ciudad"}
                 </span>
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-50 text-yellow-800 border border-yellow-200">
                   <i className="pi pi-clock mr-1"></i>
                   En proceso de verificación
                 </span>
@@ -426,93 +222,138 @@ Mixpanel.track("Form_Submit_Success", {
           </div>
         </div>
 
-        {/* Detalles del perfil */}
+        {/* Banner de verificación */}
+        <div className="bg-gradient-to-r from-blue-50 to-primary-light/10 py-3 px-4 border-y border-primary-dark/10">
+          <div className="flex items-center justify-center">
+            <i className="pi pi-info-circle text-primary-dark mr-2"></i>
+            <p className="text-sm text-neutral-dark">
+              Validaremos tu información académica en las próximas 24 horas
+            </p>
+          </div>
+        </div>
+
+        {/* Detalles del perfil en tarjetas */}
         <div className="p-6 space-y-6">
           {/* Resumen de información */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-sm font-medium text-neutral-gray mb-1 flex items-center">
-                  <i className="pi pi-user mr-2 text-primary-dark"></i>
+            {/* Tarjeta de información personal */}
+            <div className="bg-white rounded-xl border border-neutral-gray/15 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+              <div className="bg-neutral-light/30 px-4 py-3 border-b border-neutral-gray/10">
+                <h4 className="text-sm font-medium text-primary-dark flex items-center">
+                  <i className="pi pi-user text-primary-dark mr-2"></i>
                   Información Personal
                 </h4>
-                <div className="pl-6 space-y-2">
-                  <div className="flex flex-col">
-                    <span className="text-neutral-gray text-sm">
-                      Fecha de nacimiento:
-                    </span>
-                    <span className="text-neutral-dark font-medium">
-                      {formatDate(formData.bornDate)}
-                    </span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-neutral-gray text-sm">Teléfono:</span>
-                    <span className="text-neutral-dark font-medium">
-                      {formData.phone || "No especificado"}
-                    </span>
-                  </div>
-                  <div className="flex flex-col">
-                    <span className="text-neutral-gray text-sm">Email:</span>
-                    <span className="text-neutral-dark font-medium break-all">
-                      {formData.email || "No especificado"}
-                    </span>
-                  </div>
-                </div>
               </div>
-
-              <div>
-                <h4 className="text-sm font-medium text-neutral-gray mb-1 flex items-center">
-                  <i className="pi pi-map mr-2 text-primary-dark"></i>
-                  Ubicación
-                </h4>
-                <p className="pl-6 text-neutral-dark">
-                  {formData.address || "Dirección no especificada"}
-                  {formData.zona ? `, ${formData.zona}` : ""}
-                </p>
+              <div className="p-4 space-y-3">
+                <div className="flex flex-col">
+                  <span className="text-xs text-neutral-dark/70">
+                    Fecha de nacimiento
+                  </span>
+                  <span className="text-sm font-medium text-neutral-dark">
+                    {formatDate(formData.bornDate)}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs text-neutral-dark/70">Teléfono</span>
+                  <span className="text-sm font-medium text-neutral-dark">
+                    {formData.phone || "No especificado"}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs text-neutral-dark/70">Email</span>
+                  <span className="text-sm font-medium text-neutral-dark break-all">
+                    {formData.email || "No especificado"}
+                  </span>
+                </div>
+                <div className="flex flex-col pt-1">
+                  <span className="text-xs text-neutral-dark/70">
+                    Ubicación
+                  </span>
+                  <span className="text-sm font-medium text-neutral-dark">
+                    {formData.city || "Ciudad no especificada"}
+                    {formData.zona ? `, ${formData.zona}` : ""}
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <h4 className="text-sm font-medium text-neutral-gray mb-1 flex items-center">
-                  <i className="pi pi-briefcase mr-2 text-primary-dark"></i>
-                  Servicios
+            {/* Tarjeta de servicios y disponibilidad */}
+            <div className="bg-white rounded-xl border border-neutral-gray/15 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+              <div className="bg-neutral-light/30 px-4 py-3 border-b border-neutral-gray/10">
+                <h4 className="text-sm font-medium text-primary-dark flex items-center">
+                  <i className="pi pi-briefcase text-primary-dark mr-2"></i>
+                  Servicios y Disponibilidad
                 </h4>
-                <p className="pl-6 text-neutral-dark">
-                  {getSkillsHighlights()}
-                </p>
               </div>
 
-              <div>
-                <h4 className="text-sm font-medium text-neutral-gray mb-2 flex items-center">
-                  <i className="pi pi-calendar mr-2 text-primary-dark"></i>
-                  Disponibilidad
-                </h4>
-                {getDetailedAvailability()}
-              </div>
+              <div className="p-4 space-y-4">
+                <div>
+                  <span className="text-xs text-neutral-dark/70 block mb-1">
+                    Servicios que ofreces
+                  </span>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {formData.skills && formData.skills.length > 0 ? (
+                      formData.skills.slice(0, 5).map((skill, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-primary-light/30 text-primary-dark border border-primary-dark/10"
+                        >
+                          {skill}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-sm text-neutral-dark">
+                        No especificados
+                      </span>
+                    )}
 
-              <div>
-                <h4 className="text-sm font-medium text-neutral-gray mb-1 flex items-center">
-                  <i className="pi pi-wallet mr-2 text-primary-dark"></i>
-                  Método de pago
-                </h4>
-                <p className="pl-6 text-neutral-dark flex items-center">
-                  {formData.qrCode ? (
-                    <>
-                      <i className="pi pi-check-circle text-green-500 mr-1"></i>
-                      <span>QR de pago registrado</span>
-                    </>
-                  ) : (
-                    "QR de pago no registrado"
-                  )}
-                </p>
+                    {formData.skills && formData.skills.length > 5 && (
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-primary-light/10 text-primary-dark">
+                        +{formData.skills.length - 5} más
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <span className="text-xs text-neutral-dark/70 block mb-1">
+                    Días disponibles
+                  </span>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {Object.keys(formData.availability || {}).length > 0 ? (
+                      Object.keys(formData.availability).map((day, index) => (
+                        <span
+                          key={index}
+                          className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-blue-50 text-blue-700 border border-blue-100"
+                        >
+                          <i className="pi pi-calendar text-xs mr-1"></i>
+                          {day}
+                        </span>
+                      ))
+                    ) : (
+                      <span className="text-sm text-neutral-dark">
+                        No especificados
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Footer con mensaje de confirmación */}
+        <div className="bg-neutral-light/40 p-4 border-t border-neutral-gray/10">
+          <div className="flex items-center justify-center">
+            <i className="pi pi-check-circle text-primary-dark mr-2"></i>
+            <p className="text-sm text-neutral-dark">
+              Podrás editar esta información después en tu perfil
+            </p>
+          </div>
+        </div>
       </div>
 
-      <div className=" px-3 py-4 flex flex-col-reverse sm:flex-row justify-between gap-3 rounded-lg max-w-3xl mx-auto">
+      <div className="px-3 py-4 flex flex-col-reverse sm:flex-row justify-between gap-3 rounded-lg max-w-3xl mx-auto">
         <Button
           label="Modificar datos"
           icon="pi pi-arrow-left"
@@ -525,15 +366,12 @@ Mixpanel.track("Form_Submit_Success", {
           icon={isSubmitting ? "pi pi-spin pi-spinner" : "pi pi-check"}
           onClick={handleSubmitWithFeedback}
           disabled={isSubmitting}
-          className="px-6 py-3 bg-primary-dark text-white hover:bg-primary-dark/90 transition-all duration-200 w-full sm:w-auto"
+          className="px-6 py-3 bg-primary-dark text-white hover:bg-primary-dark/90 transition-all duration-200 w-full sm:w-auto shadow-sm"
         />
       </div>
 
       {/* Processing Dialog */}
       {renderProcessingDialog()}
-
-      {/* Success Dialog */}
-      {renderSuccessDialog()}
     </div>
   );
 };

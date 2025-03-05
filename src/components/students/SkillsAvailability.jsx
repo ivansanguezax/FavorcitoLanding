@@ -5,7 +5,7 @@ import { MultiSelect } from "primereact/multiselect";
 import PropTypes from "prop-types";
 import { Mixpanel } from "../../services/mixpanel";
 
-const SkillsAvailability = ({ formData, updateFormData, onNext }) => {
+const SkillsAvailability = ({ formData, updateFormData, onNext, onPrevious }) => {
   const [showAdditionalFields, setShowAdditionalFields] = useState(false);
   const [showOtherSkills, setShowOtherSkills] = useState(false);
   const [menuRef, setMenuRef] = useState(null);
@@ -301,7 +301,7 @@ const SkillsAvailability = ({ formData, updateFormData, onNext }) => {
     ) {
       return false;
     }
-    return true;
+    return formData.skills?.length > 0;
   };
 
   const getHeaderContent = (options) => {
@@ -359,75 +359,117 @@ const SkillsAvailability = ({ formData, updateFormData, onNext }) => {
 
   return (
     <div className="flex flex-col space-y-8">
-      <h2 className="text-2xl font-semibold text-center text-neutral-dark">
-        Habilidades y Disponibilidad
-      </h2>
+      <div className="text-center">
+        <h2 className="text-2xl font-semibold text-primary-dark">
+          Habilidades y Disponibilidad
+        </h2>
+        <p className="text-neutral-dark/70 mt-2 max-w-xl mx-auto">
+          Selecciona los servicios que puedes ofrecer y tus horarios disponibles
+        </p>
+      </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6 gap-3">
-        {services.map((service) => (
-          <div
-            key={service.id}
-            onClick={() => handleSkillSelect(service)}
-            className={`flex flex-col justify-center items-center p-3 h-24 rounded-lg cursor-pointer transition-all duration-200 
-              ${
-                isSkillSelected(service.value)
-                  ? "bg-primary-dark"
-                  : "border border-neutral-gray hover:border-primary-dark"
-              }`}
-          >
-            <i
-              className={`${service.icon} text-xl mb-2 ${
-                isSkillSelected(service.value)
-                  ? "text-primary-light"
-                  : "text-primary-dark"
-              }`}
-            ></i>
-            <p
-              className={`text-xs sm:text-sm font-light text-center whitespace-pre-line leading-tight ${
-                isSkillSelected(service.value)
-                  ? "text-primary-light"
-                  : "text-neutral-dark"
-              }`}
+      <div className="bg-white rounded-xl p-6 shadow-sm border border-neutral-gray/10">
+        <h3 className="text-lg font-medium text-primary-dark mb-4 flex items-center">
+          <i className="pi pi-briefcase text-primary-dark mr-2"></i>
+          Servicios que puedes ofrecer
+        </h3>
+        
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6 gap-3">
+          {services.map((service) => (
+            <div
+              key={service.id}
+              onClick={() => handleSkillSelect(service)}
+              className={`flex flex-col justify-center items-center p-3 h-24 rounded-xl cursor-pointer transition-all duration-200 
+                ${
+                  isSkillSelected(service.value)
+                    ? "bg-gradient-to-br from-primary-dark to-primary-dark/90 shadow-md transform -translate-y-0.5"
+                    : "border border-neutral-gray hover:border-primary-dark/50 hover:bg-primary-light/5"
+                }`}
             >
-              {service.title}
+              <div 
+                className={`w-10 h-10 rounded-full flex items-center justify-center mb-2
+                  ${
+                    isSkillSelected(service.value)
+                      ? "bg-white/20" 
+                      : "bg-primary-light/20"
+                  }`}
+              >
+                <i
+                  className={`${service.icon} ${
+                    isSkillSelected(service.value)
+                      ? "text-white"
+                      : "text-primary-dark"
+                  }`}
+                ></i>
+              </div>
+              <p
+                className={`text-xs sm:text-sm font-medium text-center whitespace-pre-line leading-tight ${
+                  isSkillSelected(service.value)
+                    ? "text-white"
+                    : "text-neutral-dark"
+                }`}
+              >
+                {service.title}
+              </p>
+            </div>
+          ))}
+        </div>
+        
+        {formData.skills?.length > 0 && (
+          <div className="mt-5 flex items-center border border-primary-light/20 rounded-lg p-3 bg-primary-light/5">
+            <div className="w-8 h-8 rounded-full bg-primary-dark/10 flex items-center justify-center mr-3">
+              <i className="pi pi-check text-primary-dark"></i>
+            </div>
+            <p className="text-sm text-neutral-dark">
+              Has seleccionado <span className="font-medium">{formData.skills.length}</span> servicios
             </p>
           </div>
-        ))}
+        )}
       </div>
 
       {showAdditionalFields && (
         <div className="space-y-6">
           {showOtherSkills && (
-            <div className="flex flex-col space-y-2">
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-neutral-gray/10">
+              <h3 className="text-lg font-medium text-primary-dark mb-4 flex items-center">
+                <i className="pi pi-bolt text-primary-dark mr-2"></i>
+                Detalla tus otros servicios
+              </h3>
+              
               <InputTextarea
                 value={formData.otherSkills || ""}
                 onChange={(e) =>
                   updateFormData({ otherSkills: e.target.value })
                 }
-                rows={2}
-                placeholder="Cuéntanos qué otros servicios puedes ofrecer"
-                className="w-full border border-neutral-gray rounded-lg p-2"
+                rows={3}
+                placeholder="Describe qué otros servicios puedes ofrecer y cuál es tu experiencia"
+                className="w-full border-2 border-neutral-gray rounded-lg p-3"
               />
             </div>
           )}
 
-          <div className="space-y-4">
-            <label className="text-neutral-dark font-medium block">
+          <div className="bg-white rounded-xl p-6 shadow-sm border border-neutral-gray/10">
+            <h3 className="text-lg font-medium text-primary-dark mb-4 flex items-center">
+              <i className="pi pi-calendar text-primary-dark mr-2"></i>
               Días y horarios disponibles
-            </label>
+            </h3>
 
-            <div className="border border-neutral-gray rounded-lg p-4">
-              {/* Updated days selection section */}
+            <p className="text-neutral-dark/70 text-sm mb-4">
+              Selecciona los días y horarios en los que puedes brindar tus servicios
+            </p>
+
+            <div className="border border-neutral-gray/20 rounded-xl p-5 bg-neutral-light/20">
+              {/* Days selection section */}
               <div className="grid grid-cols-7 gap-2 mb-6">
                 {weekDays.map((day) => (
                   <div
                     key={day.id}
                     onClick={() => handleDaySelect(day)}
-                    className={`flex flex-col items-center justify-center py-2 px-1 rounded cursor-pointer transition-all duration-200 w-full
+                    className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg cursor-pointer transition-all duration-200 w-full
                       ${
                         isDaySelected(day.value)
-                          ? "bg-primary-dark text-primary-light shadow-md"
-                          : "border border-neutral-gray hover:border-primary-dark hover:bg-gray-50"
+                          ? "bg-primary-dark text-white shadow-md transform -translate-y-0.5"
+                          : "border border-neutral-gray hover:border-primary-dark/50 hover:bg-primary-light/5"
                       }`}
                   >
                     <span className="block md:hidden text-sm font-medium">
@@ -440,13 +482,14 @@ const SkillsAvailability = ({ formData, updateFormData, onNext }) => {
                 ))}
               </div>
 
-              {Object.keys(formData.availability || {}).length > 0 && (
+              {Object.keys(formData.availability || {}).length > 0 ? (
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {Object.keys(formData.availability || {}).map((dayName) => (
                       <div key={dayName} className="mb-4 relative">
-                        <div className="flex justify-between items-center mb-1">
-                          <label className="block text-sm font-medium text-neutral-dark">
+                        <div className="flex justify-between items-center mb-2">
+                          <label className="text-sm font-medium text-primary-dark flex items-center">
+                            <i className="pi pi-calendar-plus text-primary-dark/70 mr-2 text-sm"></i>
                             {dayName}
                           </label>
                         </div>
@@ -459,12 +502,12 @@ const SkillsAvailability = ({ formData, updateFormData, onNext }) => {
                             optionLabel="label"
                             placeholder="Selecciona horarios"
                             display="chip"
-                            className={`w-full border border-neutral-gray rounded-lg ${
+                            className={`w-full border-2 border-neutral-gray rounded-lg ${
                               getSelectedTimes(dayName).length > 0
                                 ? "hide-dropdown-icon"
                                 : ""
                             }`}
-                            panelClassName="mt-2"
+                            panelClassName="mt-2 shadow-lg border border-neutral-gray/20 rounded-lg"
                             panelHeaderTemplate={(options) =>
                               getHeaderContent({
                                 ...options,
@@ -491,25 +534,41 @@ const SkillsAvailability = ({ formData, updateFormData, onNext }) => {
                     ))}
                   </div>
                 </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center p-6 bg-white/50 rounded-lg border border-dashed border-neutral-gray/30">
+                  <div className="w-12 h-12 rounded-full bg-primary-light/20 flex items-center justify-center mb-3">
+                    <i className="pi pi-calendar text-primary-dark"></i>
+                  </div>
+                  <p className="text-neutral-dark font-medium mb-1">Sin días seleccionados</p>
+                  <p className="text-neutral-dark/70 text-sm text-center">
+                    Haz clic en los días en los que puedes brindar tus servicios
+                  </p>
+                </div>
               )}
             </div>
           </div>
-
-          <div className="flex justify-end pt-4">
-            <Button
-              label="Siguiente"
-              icon="pi pi-arrow-right"
-              onClick={onNext}
-              disabled={!isFormValid()}
-              className={`px-6 py-3 ${
-                !isFormValid()
-                  ? "bg-gray-300 text-gray-600 border-2 border-gray-300 cursor-not-allowed"
-                  : "text-primary-dark border-2 border-primary-dark hover:bg-primary-dark hover:text-white transition-all duration-200"
-              }`}
-            />
-          </div>
         </div>
       )}
+
+      <div className="px-3 py-4 flex flex-col-reverse sm:flex-row justify-between gap-3">
+        <Button
+          label="Atrás"
+          icon="pi pi-arrow-left"
+          onClick={onPrevious}
+          className="px-6 py-3 text-primary-dark border-2 border-primary-dark hover:bg-primary-dark hover:text-white transition-all duration-200 rounded-lg"
+        />
+        <Button
+          label="Siguiente"
+          icon="pi pi-arrow-right"
+          onClick={onNext}
+          disabled={!isFormValid()}
+          className={`px-6 py-3 rounded-lg ${
+            !isFormValid()
+              ? "bg-gray-300 text-gray-600 border-2 border-gray-300 cursor-not-allowed"
+              : "text-primary-dark border-2 border-primary-dark hover:bg-primary-dark hover:text-white transition-all duration-200"
+          }`}
+        />
+      </div>
     </div>
   );
 };
@@ -518,6 +577,7 @@ SkillsAvailability.propTypes = {
   formData: PropTypes.object.isRequired,
   updateFormData: PropTypes.func.isRequired,
   onNext: PropTypes.func.isRequired,
+  onPrevious: PropTypes.func.isRequired,
 };
 
 export default SkillsAvailability;

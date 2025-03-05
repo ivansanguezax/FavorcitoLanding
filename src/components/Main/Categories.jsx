@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 
 const fixedCategories = [
   {
@@ -7,37 +7,37 @@ const fixedCategories = [
     title: "Clases\nParticulares",
     icon: "pi pi-book",
     description: "Apoyo escolar y preuniversitario",
-    popular: true
+    popular: true,
   },
   {
     id: 2,
     title: "Trámites y\nDiligencias",
     icon: "pi pi-file",
     description: "Servicios en instituciones públicas",
-    popular: true
+    popular: true,
   },
   {
     id: 3,
     title: "Compras en el\nMercado",
     icon: "pi pi-shopping-cart",
     description: "Mandados y entregas a domicilio",
-    popular: true
+    popular: true,
   },
   {
     id: 4,
     title: "Mil\nOficios",
     icon: "pi pi-wrench",
     description: "Todo tipo de chambas y arreglos",
-    popular: true
+    popular: true,
   },
   {
     id: 5,
     title: "Paseo de\nMascotas",
     icon: "pi pi-heart-fill",
     description: "Cuidado y atención de mascotas",
-    popular: true
+    popular: true,
   },
-]
+];
 
 const dynamicCategories = [
   {
@@ -50,137 +50,127 @@ const dynamicCategories = [
     id: 7,
     title: "Cocinero a\nDomicilio",
     icon: "pi pi-stop",
-    description: "Comida casera y eventos"
+    description: "Comida casera y eventos",
   },
   {
     id: 8,
     title: "Manicure y\nPedicure",
     icon: "pi pi-star",
-    description: "Arreglo de uñas a domicilio"
+    description: "Arreglo de uñas a domicilio",
   },
   {
     id: 9,
     title: "Mecánico\nCasero",
     icon: "pi pi-cog",
-    description: "Reparación de vehículos"
+    description: "Reparación de vehículos",
   },
   {
     id: 10,
     title: "Jardinero",
     icon: "pi pi-inbox",
-    description: "Arreglo de jardines y plantas"
+    description: "Arreglo de jardines y plantas",
   },
   {
     id: 11,
     title: "Técnico de\nComputadoras",
     icon: "pi pi-desktop",
-    description: "Reparación de PCs y laptops"
+    description: "Reparación de PCs y laptops",
   },
   {
     id: 12,
     title: "Entrenador\nPersonal",
     icon: "pi pi-user",
-    description: "Rutinas y ejercicios"
+    description: "Rutinas y ejercicios",
   },
   {
     id: 13,
     title: "Fotógrafo",
     icon: "pi pi-camera",
-    description: "Fotos para eventos y documentos"
+    description: "Fotos para eventos y documentos",
   },
   {
     id: 14,
     title: "Técnico\nInstalador",
     icon: "pi pi-mobile",
-    description: "Instalación de equipos"
+    description: "Instalación de equipos",
   },
   {
     id: 15,
     title: "Mesero\nEventos",
     icon: "pi pi-users",
-    description: "Atención en fiestas y eventos"
+    description: "Atención en fiestas y eventos",
   },
   {
     id: 16,
     title: "Páginas\nWeb",
     icon: "pi pi-globe",
-    description: "Desarrollo de sitios web"
+    description: "Desarrollo de sitios web",
   },
   {
     id: 17,
     title: "Creador de\nContenido",
     icon: "pi pi-video",
-    description: "Videos para redes sociales"
+    description: "Videos para redes sociales",
   },
   {
     id: 18,
     title: "Editor de\nVideos",
     icon: "pi pi-camera",
-    description: "Edición semi-profesional"
+    description: "Edición semi-profesional",
   },
   {
     id: 19,
     title: "Diseñador\nGráfico",
     icon: "pi pi-pencil",
-    description: "Logos y material publicitario"
+    description: "Logos y material publicitario",
   },
   {
     id: 20,
     title: "Otros\nServicios",
     icon: "pi pi-bolt",
     description: "Servicios varios",
-    isLast: true
-  }
-]
+    isLast: true,
+  },
+];
 
 export const Categories = () => {
-  const [showAll, setShowAll] = useState(false)
-  const [shuffledCategories, setShuffledCategories] = useState([])
-  const [isMobile, setIsMobile] = useState(false)
-  
+  const [showAll, setShowAll] = useState(false);
+  const [shuffledCategories, setShuffledCategories] = useState([]);
+  const [isMobile, setIsMobile] = useState(false);
+
   useEffect(() => {
-    // Función para verificar si es móvil
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640) // sm breakpoint en Tailwind (640px)
-    }
-    
-    // Verificar al inicio
-    checkMobile()
-    
-    // Listener para cambios de tamaño
-    window.addEventListener('resize', checkMobile)
-    
-    return () => window.removeEventListener('resize', checkMobile)
-  }, [])
-  
+      setIsMobile(window.innerWidth < 640);
+    };
+
+    checkMobile();
+
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   useEffect(() => {
-    // Separar la categoría "Otros"
-    const othersCategory = dynamicCategories.find(cat => cat.isLast)
-    const categoriesToShuffle = dynamicCategories.filter(cat => !cat.isLast)
-    
-    // Mezclar las categorías usando el algoritmo Fisher-Yates
-    const shuffled = [...categoriesToShuffle]
+    const othersCategory = dynamicCategories.find((cat) => cat.isLast);
+    const categoriesToShuffle = dynamicCategories.filter((cat) => !cat.isLast);
+
+    const shuffled = [...categoriesToShuffle];
     for (let i = shuffled.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
     }
-    
-    // Añadir "Otros" al final
-    setShuffledCategories([...shuffled, othersCategory])
-  }, [])
 
-  // Decide qué categorías mostrar
+    setShuffledCategories([...shuffled, othersCategory]);
+  }, []);
+
   let visibleCategories;
-  
+
   if (showAll) {
-    // Si showAll es true, mostrar todas las categorías independientemente del dispositivo
     visibleCategories = [...fixedCategories, ...shuffledCategories];
   } else {
     if (isMobile) {
-      // En móvil cuando no está expandido, mostrar 6 categorías (las 5 fijas + la primera de las dinámicas)
       visibleCategories = [...fixedCategories, shuffledCategories[0]];
     } else {
-      // En desktop cuando no está expandido, mostrar solo las 5 fijas
       visibleCategories = fixedCategories;
     }
   }
@@ -202,7 +192,7 @@ export const Categories = () => {
           </p>
         </motion.div>
 
-        <motion.div 
+        <motion.div
           className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"
           layout
         >
@@ -230,7 +220,7 @@ export const Categories = () => {
           ))}
         </motion.div>
 
-        <motion.div 
+        <motion.div
           className="text-center mt-8"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -245,5 +235,5 @@ export const Categories = () => {
         </motion.div>
       </div>
     </section>
-  )
-}
+  );
+};

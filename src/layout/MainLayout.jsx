@@ -7,19 +7,17 @@ import { Hero } from "../components/Main/Hero";
 import { Navbar } from "../components/Main/Navbar";
 import Popular from "../components/Main/Popular";
 import StepByStep from "../components/Main/StepByStep";
-import Testimonials from "../components/Main/Testimonials"; // Importa el nuevo componente
+import Testimonials from "../components/Main/Testimonials";
 import Loader from "../components/Main/Loader";
 
 export const MainLayout = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Función para precargar imágenes
     const preloadImages = async () => {
       const imageUrls = [
         "https://res.cloudinary.com/dfgjenml4/image/upload/v1737657600/logoLigth_gbv7ds.png",
         "https://res.cloudinary.com/dfgjenml4/image/upload/v1737657583/logoDark_uvqsz9.png",
-        // Agrega aquí todas las URLs de imágenes que necesites precargar
       ];
 
       try {
@@ -33,8 +31,7 @@ export const MainLayout = () => {
         };
 
         await Promise.all(imageUrls.map(loadImage));
-        
-        // Añade un pequeño delay para mostrar el loader
+
         setTimeout(() => {
           setIsLoading(false);
         }, 3000);
@@ -50,23 +47,55 @@ export const MainLayout = () => {
   return (
     <>
       <Helmet>
-        <title>Favorcito | Conecta con Estudiantes Universitarios para Tareas Diarias</title>
-        <meta name="description" content="Favorcito - Conectamos estudiantes universitarios con personas que necesitan ayuda. Servicios de mudanza, desarrollo web, reparaciones y más. La mejor plataforma de microtrabajos en Bolivia." />
-        <meta name="keywords" content="Favorcito, favores Bolivia, microtrabajos, estudiantes universitarios, ayuda universitaria, servicios estudiantiles, ganar dinero estudiando, tareas Bolivia" />
+        <title>
+          Favorcito | Conecta con Estudiantes Universitarios para Tareas Diarias
+        </title>
+        <meta
+          name="description"
+          content="Favorcito - Conectamos estudiantes universitarios con personas que necesitan ayuda. Servicios de mudanza, desarrollo web, reparaciones y más. La mejor plataforma de microtrabajos en Bolivia."
+        />
+        <meta
+          name="keywords"
+          content="Favorcito, favores Bolivia, microtrabajos, estudiantes universitarios, ayuda universitaria, servicios estudiantiles, ganar dinero estudiando, tareas Bolivia"
+        />
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="Favorcito" />
-        <meta property="og:title" content="Favorcito | Ayuda Universitaria a Tu Alcance" />
-        <meta property="og:description" content="Conectamos estudiantes universitarios con personas que necesitan ayuda. Servicios confiables y económicos para tus tareas diarias. ¡Apoya el talento universitario!" />
-        <meta property="og:image" content="https://res.cloudinary.com/dfgjenml4/image/upload/v1738023031/banner_ojqkje.png" />
-        <meta property="og:image:alt" content="Favorcito - Plataforma de servicios universitarios" />
+        <meta
+          property="og:title"
+          content="Favorcito | Ayuda Universitaria a Tu Alcance"
+        />
+        <meta
+          property="og:description"
+          content="Conectamos estudiantes universitarios con personas que necesitan ayuda. Servicios confiables y económicos para tus tareas diarias. ¡Apoya el talento universitario!"
+        />
+        <meta
+          property="og:image"
+          content="https://res.cloudinary.com/dfgjenml4/image/upload/v1738023031/banner_ojqkje.png"
+        />
+        <meta
+          property="og:image:alt"
+          content="Favorcito - Plataforma de servicios universitarios"
+        />
         <meta property="og:url" content="https://tufavorcito.com" />
         <meta property="og:locale" content="es_BO" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:site" content="@favorcito" />
-        <meta name="twitter:title" content="Favorcito | Servicios Universitarios en Bolivia" />
-        <meta name="twitter:description" content="Encuentra ayuda confiable de estudiantes universitarios para tus tareas. Mudanzas, desarrollo web, reparaciones y más. ¡Apoya el talento joven!" />
-        <meta name="twitter:image" content="https://res.cloudinary.com/dfgjenml4/image/upload/v1738023031/banner_ojqkje.png" />
-        <meta name="twitter:image:alt" content="Favorcito - Servicios universitarios" />
+        <meta
+          name="twitter:title"
+          content="Favorcito | Servicios Universitarios en Bolivia"
+        />
+        <meta
+          name="twitter:description"
+          content="Encuentra ayuda confiable de estudiantes universitarios para tus tareas. Mudanzas, desarrollo web, reparaciones y más. ¡Apoya el talento joven!"
+        />
+        <meta
+          name="twitter:image"
+          content="https://res.cloudinary.com/dfgjenml4/image/upload/v1738023031/banner_ojqkje.png"
+        />
+        <meta
+          name="twitter:image:alt"
+          content="Favorcito - Servicios universitarios"
+        />
         <link rel="canonical" href="https://tufavorcito.com" />
         <script type="application/ld+json">{`
           {
@@ -104,7 +133,7 @@ export const MainLayout = () => {
             <Navbar />
             <Hero />
             <Categories />
-            <Testimonials /> 
+            <Testimonials />
             <Popular />
             <StepByStep />
             <Footer />
