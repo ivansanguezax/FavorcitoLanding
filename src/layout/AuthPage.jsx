@@ -102,6 +102,14 @@ const AuthPage = () => {
     }
   };
 
+  const goToPrevSlide = () => {
+    setCurrentSlide((prev) => (prev === 0 ? carouselData.length - 1 : prev - 1));
+  };
+
+  const goToNextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % carouselData.length);
+  };
+
   if (loading) {
     return (
       <div className="flex h-screen w-full items-center justify-center bg-neutral-100">
@@ -128,11 +136,11 @@ const AuthPage = () => {
   };
 
   return (
-    <div className="flex flex-col md:flex-row h-screen w-full overflow-hidden bg-white md:bg-white">
+    <div className="flex flex-col md:flex-row h-screen w-full overflow-hidden">
       {/* Mobile Layout (only visible on mobile) */}
-      <div className="md:hidden flex flex-col h-screen bg-neutral-100">
-        {/* Top image carousel - 60% of screen height */}
-        <div className="h-[70%] relative overflow-hidden bg-neutral-800">
+      <div className="md:hidden flex flex-col h-full bg-primary-dark">
+        {/* Top image carousel */}
+        <div className="h-2/3 relative overflow-hidden bg-neutral-800">
           <div className="absolute inset-0 transition-opacity duration-1000">
             <img
               src={carouselData[currentSlide].image}
@@ -140,12 +148,50 @@ const AuthPage = () => {
               className="w-full h-full object-cover"
             />
           </div>
+          
+          {/* Carousel Navigation Controls - Same for both Mobile and Desktop */}
+          <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-4 z-20">
+            <button 
+              onClick={goToPrevSlide} 
+              className="bg-white/20 hover:bg-white/30 rounded-full p-2 text-white"
+              aria-label="Previous slide"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+              </svg>
+            </button>
+            <button 
+              onClick={goToNextSlide} 
+              className="bg-white/20 hover:bg-white/30 rounded-full p-2 text-white"
+              aria-label="Next slide"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+              </svg>
+            </button>
+          </div>
+          
+          {/* Mobile Carousel Indicators */}
+          <div className="absolute bottom-4 left-0 right-0 flex justify-center">
+            <div className="flex space-x-2">
+              {carouselData.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentSlide(index)}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    currentSlide === index ? "bg-white w-4" : "bg-white/40"
+                  }`}
+                  aria-label={`Go to slide ${index + 1}`}
+                />
+              ))}
+            </div>
+          </div>
         </div>
 
         {/* Bottom auth content with curved top and shadow */}
-        <div className="h-[35%] flex flex-col px-6 bg-primary-dark rounded-t-3xl shadow-xl relative -mt-4 z-10">
+        <div className="h-1/3 flex flex-col px-6 bg-primary-dark rounded-t-3xl  relative -mt-4 z-10 justify-between">
           {/* Logo */}
-          <div className="flex justify-center mt-8 mb-6">
+          <div className="flex justify-center mt-4">
             <img
               src="https://res.cloudinary.com/dfgjenml4/image/upload/v1737657600/logoLigth_gbv7ds.png"
               alt="Favorcito Logo"
@@ -154,15 +200,15 @@ const AuthPage = () => {
           </div>
 
           {/* Welcome Message */}
-          <div className="text-center mb-8">
-            <h1 className="text-xl  text-white font-light">
+          <div className="text-center">
+            <h1 className="text-xl text-white font-light">
               ¡Comparte tus habilidades!
             </h1>
-
           </div>
 
-          {/* Google Sign in button */}
-          <div className="mt-auto mb-12">
+          {/* Auth Buttons Container */}
+          <div className="flex flex-col mb-4">
+            {/* Google Sign in button */}
             <Button
               onClick={() => handleLoginWithGoogle(true)}
               disabled={authLoading}
@@ -182,13 +228,13 @@ const AuthPage = () => {
               </span>
             </Button>
 
-            <div className="text-center mt-4">
+            <div className="text-center mt-3">
               <p className="text-sm font-light text-white">
                 ¿Ya tienes una cuenta?
                 <Button
                   onClick={() => handleLoginWithGoogle(false)}
                   disabled={authLoading}
-                  className="p-button-text p-button-plain text-primary-light font-light hover:underline p-0"
+                  className="p-button-text p-button-plain text-primary-light font-light hover:underline p-0 ml-1"
                   label={authLoading ? "Cargando..." : "Iniciar sesión"}
                 />
               </p>
@@ -205,6 +251,28 @@ const AuthPage = () => {
             alt={carouselData[currentSlide].title}
             className="w-full h-full object-cover opacity-30"
           />
+        </div>
+
+        {/* Desktop Carousel Navigation Controls - Same UI as Mobile */}
+        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-6 z-20">
+          <button 
+            onClick={goToPrevSlide} 
+            className="bg-white/20 hover:bg-white/30 rounded-full p-2 text-white"
+            aria-label="Previous slide"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+          </button>
+          <button 
+            onClick={goToNextSlide} 
+            className="bg-white/20 hover:bg-white/30 rounded-full p-2 text-white"
+            aria-label="Next slide"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+          </button>
         </div>
 
         <div className="relative z-10 flex flex-col justify-between p-12 w-full">
@@ -272,7 +340,7 @@ const AuthPage = () => {
                 <Button
                   onClick={() => handleLoginWithGoogle(false)}
                   disabled={authLoading}
-                  className="p-button-text p-button-plain text-primary-dark font-medium hover:underline p-0"
+                  className="p-button-text p-button-plain text-primary-dark font-medium hover:underline p-0 ml-1"
                   label={authLoading ? "Cargando..." : "Iniciar sesión"}
                 />
               </p>
