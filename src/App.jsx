@@ -14,6 +14,7 @@ import { AuthProvider } from "./context/AuthContext";
 import Dashboard from "./layout/DashboardLayout";
 import { useAuth } from "./context/AuthContext";
 import AuthPage from "./layout/AuthPage";
+import IncomeCalculatorPage from "./layout/IncomeCalculatorPage";
 import PropTypes from "prop-types";
 import Loader from "./components/Main/Loader";
 
@@ -149,6 +150,9 @@ function AppWithAuth() {
         />
 
         <Route path="/auth" element={<AuthPage />} />
+        
+        {/* Ruta para la calculadora de ingresos */}
+        <Route path="/calculadora" element={<IncomeCalculatorPage />} />
 
         <Route
           path="/estudiante/*"
