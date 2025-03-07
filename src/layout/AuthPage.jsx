@@ -134,116 +134,96 @@ const AuthPage = () => {
 
   return (
     <div className="flex flex-col md:flex-row h-screen w-full overflow-hidden">
-      {/* Mobile Layout (only visible on mobile) */}
-      <div className="md:hidden flex flex-col h-screen bg-primary-dark">
-        {/* Top image carousel - Reducido a 40% de la pantalla */}
-        <div className="h-2/5 relative overflow-hidden bg-neutral-800">
-          <div className="absolute inset-0 transition-opacity duration-1000">
-            <img
-              src={carouselData[currentSlide].image}
-              alt={carouselData[currentSlide].title}
-              className="w-full h-full object-cover object-center"
-            />
+      {/* Mobile Layout (only visible on mobile) - Completamente rediseñado */}
+      <div className="md:hidden h-screen relative bg-primary-dark">
+        {/* Fondo de imagen en pantalla completa */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src={carouselData[currentSlide].image}
+            alt={carouselData[currentSlide].title}
+            className="w-full h-full object-cover object-center opacity-30"
+          />
+          {/* Overlay para mejorar legibilidad del contenido */}
+          <div className="absolute inset-0 bg-primary-dark opacity-60"></div>
+        </div>
+        
+        {/* Contenido sobrepuesto en el centro de la pantalla */}
+        <div className="relative z-10 flex flex-col justify-center items-center h-full px-6 py-8">
+          {/* Logo con enlace al home */}
+          <div className="mb-5">
+            <Link to="/">
+              <img
+                src="https://res.cloudinary.com/dfgjenml4/image/upload/v1737657600/logoLigth_gbv7ds.png"
+                alt="Favorcito Logo"
+                className="h-8"
+              />
+            </Link>
           </div>
           
-          {/* Carousel Navigation Controls */}
-          <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-4 z-20">
-            <button 
-              onClick={goToPrevSlide} 
-              className="bg-white/20 hover:bg-white/30 rounded-full p-2 text-white"
-              aria-label="Previous slide"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="15 18 9 12 15 6"></polyline>
-              </svg>
-            </button>
-            <button 
-              onClick={goToNextSlide} 
-              className="bg-white/20 hover:bg-white/30 rounded-full p-2 text-white"
-              aria-label="Next slide"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="9 18 15 12 9 6"></polyline>
-              </svg>
-            </button>
+
+          
+          {/* Mensajes de bienvenida */}
+          <div className="text-center mb-6">
+            <h2 className="text-xl text-white font-light mb-2">
+              ¡Comparte tus habilidades!
+            </h2>
+            <p className="text-white text-sm opacity-80">
+              Únete como estudiante y comienza a ofrecer tus servicios
+            </p>
           </div>
           
-          {/* Mobile Carousel Indicators */}
-          <div className="absolute bottom-2 left-0 right-0 flex justify-center">
-            <div className="flex space-x-1">
+          {/* Botones de autenticación */}
+          <div className="w-full max-w-xs">
+            <Button
+              onClick={() => handleLoginWithGoogle(true)}
+              disabled={authLoading}
+              className="p-button-secondary w-full flex items-center justify-center gap-2 bg-primary-light text-primary-dark border-none rounded-lg p-3 hover:bg-opacity-90 transition-colors font-medium mb-4"
+            >
+              {authLoading ? (
+                <i className="pi pi-spin pi-spinner mr-2"></i>
+              ) : (
+                <img
+                  src="https://cdn-icons-png.flaticon.com/512/2991/2991148.png"
+                  alt="Google"
+                  className="w-5 h-5 bg-white p-0.5 rounded-full font-light mr-2"
+                />
+              )}
+              <span>
+                {authLoading ? "Cargando..." : "¡Comienza con Google!"}
+              </span>
+            </Button>
+            
+            <div className="text-center">
+              <p className="text-sm font-light text-white">
+                ¿Ya tienes una cuenta?
+                <Button
+                  onClick={() => handleLoginWithGoogle(false)}
+                  disabled={authLoading}
+                  className="p-button-text p-button-plain text-primary-light font-light hover:underline p-0 ml-1"
+                  label={authLoading ? "Cargando..." : "Iniciar sesión"}
+                />
+              </p>
+            </div>
+          </div>
+          
+          {/* Indicadores del carrusel */}
+          <div className="absolute bottom-8 left-0 right-0 flex justify-center">
+            <div className="flex space-x-2">
               {carouselData.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentSlide(index)}
-                  className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
-                    currentSlide === index ? "bg-white w-4" : "bg-white/40"
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    currentSlide === index ? "bg-white w-5" : "bg-white/40"
                   }`}
                   aria-label={`Go to slide ${index + 1}`}
                 />
               ))}
             </div>
           </div>
-        </div>
+          
+          {/* Botones de navegación del carrusel */}
 
-        {/* Bottom auth content - Ahora ocupa 60% de la pantalla */}
-        <div className="h-3/5 flex flex-col px-6 bg-primary-dark rounded-t-3xl relative -mt-4 z-10">
-          <div className="flex flex-col py-5 h-full justify-between">
-            {/* Logo with home link */}
-            <div className="flex justify-center mb-4">
-              <Link to="/">
-                <img
-                  src="https://res.cloudinary.com/dfgjenml4/image/upload/v1737657600/logoLigth_gbv7ds.png"
-                  alt="Favorcito Logo"
-                  className="h-8"
-                />
-              </Link>
-            </div>
-
-            {/* Welcome Message */}
-            <div className="text-center mb-5">
-              <h1 className="text-xl text-white font-light mb-2">
-                ¡Comparte tus habilidades!
-              </h1>
-              <p className="text-white/70 text-sm">
-                Únete como estudiante y comienza a ofrecer tus servicios
-              </p>
-            </div>
-
-            {/* Auth Buttons Container */}
-            <div className="flex flex-col mb-8">
-              {/* Google Sign in button */}
-              <Button
-                onClick={() => handleLoginWithGoogle(true)}
-                disabled={authLoading}
-                className="p-button-secondary w-full flex items-center justify-center gap-2 bg-primary-light text-primary-dark border-none rounded-lg p-3 hover:bg-opacity-90 transition-colors font-medium mb-4"
-              >
-                {authLoading ? (
-                  <i className="pi pi-spin pi-spinner mr-2"></i>
-                ) : (
-                  <img
-                    src="https://cdn-icons-png.flaticon.com/512/2991/2991148.png"
-                    alt="Google"
-                    className="w-5 h-5 bg-white p-0.5 rounded-full font-light mr-2"
-                  />
-                )}
-                <span>
-                  {authLoading ? "Cargando..." : "¡Comienza con Google!"}
-                </span>
-              </Button>
-
-              <div className="text-center">
-                <p className="text-sm font-light text-white">
-                  ¿Ya tienes una cuenta?
-                  <Button
-                    onClick={() => handleLoginWithGoogle(false)}
-                    disabled={authLoading}
-                    className="p-button-text p-button-plain text-primary-light font-light hover:underline p-0 ml-1"
-                    label={authLoading ? "Cargando..." : "Iniciar sesión"}
-                  />
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
