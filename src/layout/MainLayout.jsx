@@ -9,6 +9,7 @@ import Popular from "../components/Main/Popular";
 import StepByStep from "../components/Main/StepByStep";
 import Testimonials from "../components/Main/Testimonials";
 import Loader from "../components/Main/Loader";
+import CalculatorPromotion from "./CalculatorPromotion";
 
 export const MainLayout = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -130,6 +131,7 @@ export const MainLayout = () => {
             transition={{ duration: 0.5 }}
             className="min-h-screen bg-neutral-light"
           >
+            <CalculatorPromotion />
             <Navbar />
             <Hero />
             <Categories />
@@ -137,6 +139,7 @@ export const MainLayout = () => {
             <Popular />
             <StepByStep />
             <Footer />
+
           </motion.div>
         )}
       </AnimatePresence>

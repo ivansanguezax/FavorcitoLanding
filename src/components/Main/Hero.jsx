@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { FlipWords } from "../common/FlipWords";
 import { Button } from "primereact/button";
+import { useState, useEffect } from "react";
 
 const words = [
   "las filas",
@@ -13,15 +14,46 @@ const words = [
   "ejercicios",
 ];
 
+// Array de diferentes CTAs para el botón
+const ctaVariations = [
+  {
+    label: "Ganar dinero con mis habilidades",
+    icon: "pi pi-briefcase"
+  },
+  {
+    label: "Registrarme como estudiante",
+    icon: "pi pi-user-check"
+  },
+  {
+    label: "Empezar a hacer favores",
+    icon: "pi pi-check-circle"
+  },
+  {
+    label: "Ver trabajos para estudiantes",
+    icon: "pi pi-search"
+  }
+];
+
+
 export const Hero = () => {
   const navigate = useNavigate();
+  const [currentCta, setCurrentCta] = useState(null);
+
+  // Seleccionar una CTA aleatoria al cargar el componente
+  useEffect(() => {
+    const randomIndex = Math.floor(Math.random() * ctaVariations.length);
+    setCurrentCta(ctaVariations[randomIndex]);
+  }, []);
 
   const handleStudentRegister = () => {
     navigate('/auth');
   };
 
+  // No renderizar hasta que tengamos una CTA seleccionada
+  if (!currentCta) return null;
+
   return (
-    <section className="w-full pt-24 md:pt-32 pb-12 relative overflow-hidden">
+    <section className="w-full pt-28 md:pt-36 pb-12 relative overflow-hidden">
       <div className="container mx-auto px-4 md:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
           {/* Left Content */}
@@ -57,17 +89,24 @@ export const Hero = () => {
               /> ahora y deja que un universitario te ayude.
             </motion.p>
 
-            {/* CTA Buttons */}
+            {/* CTA Buttons - Uno en desktop, dos en mobile */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.5, duration: 0.8 }}
-              className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start"
+              className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start mt-8 mb-4 sm:my-4"
             >
               <Button
                 onClick={handleStudentRegister}
                 className="border-2 border-[#02533C] text-[#02533C] hover:bg-[#02533C] hover:text-white transition-all duration-300 px-6 py-2 rounded-full font-light flex items-center gap-2"
-                label="Soy estudiante"
+                label={currentCta.label}
+                icon={currentCta.icon}
+                iconPos="right"
+              />
+              <Button
+                onClick={() => window.location.href = "https://app.tufavorcito.com"}
+                className="sm:hidden bg-[#02533C] text-white hover:bg-[#02533C]/90 border-2 border-transparent hover:border-[#02533C] transition-all duration-300 px-6 py-2 rounded-full font-light flex items-center gap-2"
+                label="Quiero un favorcito"
                 icon="pi pi-arrow-up-right"
                 iconPos="right"
               />
@@ -79,7 +118,7 @@ export const Hero = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.8 }}
-            className="relative h-full min-h-[400px] lg:min-h-[600px]"
+            className="relative h-full min-h-[350px] lg:min-h-[600px]"
           >
             <div className="absolute inset-0 flex items-center justify-center">
               <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-neutral-light opacity-100 z-10" />

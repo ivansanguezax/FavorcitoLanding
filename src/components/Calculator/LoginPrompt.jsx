@@ -4,24 +4,21 @@ import { useState, useEffect } from "react";
 
 const LoginPrompt = ({ onLogin, loading, calculatedIncome }) => {
   const [funnyMessage, setFunnyMessage] = useState("");
-  
-  // Lista de mensajes divertidos para motivar el registro
+
   const funnyMessages = [
     "¡Tu billetera ya está sonriendo!",
     "Spoiler: Tus ahorros están a punto de crecer",
     "Estás a un click de decirle adiós a los fideos instantáneos",
     "Tu futuro yo dice: '¡Gracias por registrarte!'",
     "Mientras dudas, otro estudiante ya está ganando",
-    "Comienza hoy, agradécete mañana"
+    "Comienza hoy, agradécete mañana",
   ];
-  
+
   useEffect(() => {
-    // Elegir un mensaje aleatorio
     const randomIndex = Math.floor(Math.random() * funnyMessages.length);
     setFunnyMessage(funnyMessages[randomIndex]);
   }, []);
 
-  // Formatear para mostrar como moneda boliviana (versión borrosa)
   const formatCurrencyBlurred = (value) => {
     const formatted = `Bs. ${value.toLocaleString()}`;
     return formatted.replace(/\d/g, "✱");
@@ -29,8 +26,6 @@ const LoginPrompt = ({ onLogin, loading, calculatedIncome }) => {
 
   return (
     <div className="flex flex-col items-center p-4">
-
-      
       {calculatedIncome && (
         <div className="bg-slate-50 border border-slate-200 rounded-lg p-5 mb-6 w-full text-center shadow-md relative overflow-hidden">
           <div className="absolute inset-0 bg-white/10 backdrop-blur-sm flex items-center justify-center z-10">
@@ -38,22 +33,23 @@ const LoginPrompt = ({ onLogin, loading, calculatedIncome }) => {
               ¡Regístrate para ver tus resultados!
             </div>
           </div>
-          
+
           <p className="text-sm text-neutral-dark mb-1">Podrías ganar hasta</p>
           <h3 className="text-3xl font-bold text-primary-dark filter blur-sm">
             {formatCurrencyBlurred(calculatedIncome.monthly.max)}
           </h3>
-          <p className="text-xs text-neutral-dark/60 mt-1">mensuales compartiendo tus habilidades</p>
+          <p className="text-xs text-neutral-dark/60 mt-1">
+            mensuales compartiendo tus habilidades
+          </p>
         </div>
       )}
-      
+
       <div className="text-center mb-4">
         <h3 className="text-xl font-semibold text-primary-dark mb-2">
           ¡Estás a un paso de conocer tu potencial!
         </h3>
-
       </div>
-      
+
       {/* Mensaje divertido con animación */}
       <div className="bg-yellow-50 border-l-4 border-yellow-400 p-3 mb-6 w-full rounded-r-lg">
         <p className="text-sm text-neutral-dark flex items-center">
@@ -61,7 +57,7 @@ const LoginPrompt = ({ onLogin, loading, calculatedIncome }) => {
           <span className="italic">{funnyMessage}</span>
         </p>
       </div>
-      
+
       <Button
         onClick={onLogin}
         disabled={loading}
@@ -80,9 +76,8 @@ const LoginPrompt = ({ onLogin, loading, calculatedIncome }) => {
           {loading ? "Procesando..." : "¡Descubre cuánto puedes ganar!"}
         </span>
       </Button>
-      
-      <div className="mt-6 text-sm text-neutral-dark/60 text-center flex flex-col items-center space-y-2">
 
+      <div className="mt-6 text-sm text-neutral-dark/60 text-center flex flex-col items-center space-y-2">
         <p className="text-xs mt-2 text-neutral-dark/40">
           Al continuar, aceptas los Términos y Condiciones de Favorcito
         </p>
@@ -94,7 +89,7 @@ const LoginPrompt = ({ onLogin, loading, calculatedIncome }) => {
 LoginPrompt.propTypes = {
   onLogin: PropTypes.func.isRequired,
   loading: PropTypes.bool.isRequired,
-  calculatedIncome: PropTypes.object
+  calculatedIncome: PropTypes.object,
 };
 
 export default LoginPrompt;

@@ -11,6 +11,9 @@ export const Navbar = () => {
   const [mobileMenu, setMobileMenu] = useState(false);
   const menuRef = useRef(null);
 
+  // Check if banner is showing using the same logic as in CalculatorPromotion
+  const isBannerShowing = localStorage.getItem("calculatorPopupShown") === "true";
+
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 50);
     window.addEventListener("scroll", handleScroll);
@@ -61,11 +64,16 @@ export const Navbar = () => {
     window.open(social.url, "_blank");
   };
 
+  // Adjust header positioning based on banner visibility
+  const headerClassName = `fixed w-full z-50 ${
+    isBannerShowing ? "top-[48px]" : "top-0"
+  } transition-all duration-300`;
+
   return (
     <>
       <Toast ref={toast} position="bottom-right" />
 
-      <header className="fixed w-full z-50">
+      <header className={headerClassName}>
         <motion.nav
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -155,6 +163,15 @@ export const Navbar = () => {
                   icon="pi pi-arrow-up-right"
                   iconPos="right"
                 />
+                
+                {/* Add calculator button to mobile menu */}
+                <Button
+                  onClick={() => navigate("/calculadora")}
+                  className={`px-6 py-2 rounded-full font-light bg-accent border-0 text-primary-dark hover:bg-accent/90 transition-all duration-300`}
+                  label="Probar calculadora"
+                  icon="pi pi-calculator"
+                  iconPos="right"
+                />
 
                 <div className="flex gap-4 justify-center mt-4">
                   <i
@@ -184,3 +201,5 @@ export const Navbar = () => {
     </>
   );
 };
+
+export default Navbar;

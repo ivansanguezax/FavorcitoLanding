@@ -2,7 +2,7 @@ import authService from "./authService";
 import { studentsService } from "./studentsService";
 
 export const calculatorAuthService = {
-  signInWithGoogleForCalculator: async (city, selectedSkills) => {
+  signInWithGoogleForCalculator: async (city, selectedSkills, phoneNumber = "+591-66666666") => {
     try {
       // Obtener usuario directamente
       const user = await authService.signInWithGoogle();
@@ -27,7 +27,8 @@ export const calculatorAuthService = {
           const registerResponse = await calculatorAuthService.registerStudentDirectly(
             user, 
             city, 
-            selectedSkills
+            selectedSkills,
+            phoneNumber
           );
           
           // Si el registro fue exitoso, establecer exists a true
@@ -49,10 +50,15 @@ export const calculatorAuthService = {
     }
   },
   
-  registerStudentDirectly: async (user, city, selectedSkills) => {
+  registerStudentDirectly: async (user, city, selectedSkills, phoneNumber = "") => {
     if (!user || !user.email) {
       throw new Error("User information is incomplete");
     }
+    
+    // Añadir prefijo de Bolivia si no lo tiene
+    const formattedPhone = phoneNumber ? 
+      (phoneNumber.startsWith("+591") ? phoneNumber : `+591-${phoneNumber}`) : 
+      "+591-66666666";
     
     const defaultAvailability = {
       "Miercoles": ["09:00"],
@@ -63,12 +69,12 @@ export const calculatorAuthService = {
       "Sabado": [],
       "Domingo": []
     };
-
+  
     const studentData = {
       fullName: user.displayName || "",
       email: user.email || "",
       bornDate: "2000-01-01",
-      phone: "+591-66666666",
+      phone: formattedPhone,
       city: city,
       province: "Calculadora",
       address: "Calculadora",

@@ -5,6 +5,7 @@ import { Dropdown } from "primereact/dropdown";
 import { ProgressBar } from "primereact/progressbar";
 import { Tooltip } from "primereact/tooltip";
 import { InputText } from "primereact/inputtext";
+import { InputMask } from "primereact/inputmask";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Mixpanel } from "../services/mixpanel";
@@ -25,10 +26,12 @@ const IncomeCalculatorPage = () => {
   const [calculatedIncome, setCalculatedIncome] = useState(null);
   const [loginLoading, setLoginLoading] = useState(false);
   const [registrationLoading, setRegistrationLoading] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState("");
   const { currentUser, userExists, loading, setCurrentUser, setUserExists } = useAuth();
   const navigate = useNavigate();
   const mainContentRef = useRef(null);
   const otherCityInputRef = useRef(null);
+  const phoneInputRef = useRef(null);
 
   useEffect(() => {
     if (loginLoading || registrationLoading) {
@@ -58,8 +61,8 @@ const IncomeCalculatorPage = () => {
     }
   }, [step]);
 
-// Efecto para enfocar el input de otra ciudad cuando se muestra (solo en desktop)
-useEffect(() => {
+  // Efecto para enfocar el input de otra ciudad cuando se muestra (solo en desktop)
+  useEffect(() => {
     if (showOtherCity && otherCityInputRef.current) {
       // Solo enfocar en dispositivos no móviles
       if (window.innerWidth >= 768) {
@@ -129,7 +132,10 @@ useEffect(() => {
   };
 
   const handleCalculate = () => {
-    if (selectedSkills.length === 0 || (!showOtherCity && !city) || (showOtherCity && !otherCity)) {
+    if (selectedSkills.length === 0 || 
+        (!showOtherCity && !city) || 
+        (showOtherCity && !otherCity) ||
+        !phoneNumber || phoneNumber === "+591-") {
       return;
     }
 
@@ -160,14 +166,16 @@ useEffect(() => {
       const response = await calculatorAuthService.registerStudentDirectly(
         user,
         showOtherCity ? otherCity : city,
-        selectedSkills
+        selectedSkills,
+        phoneNumber
       );
       
       if (response && response.success) {
         Mixpanel.track("Student_Registration_Success", {
           email: user.email,
           skills_count: selectedSkills.length,
-          source: "income_calculator"
+          source: "income_calculator",
+          phone: phoneNumber
         });
         
         setUserExists(true);
@@ -197,62 +205,33 @@ useEffect(() => {
   
       const result = await calculatorAuthService.signInWithGoogleForCalculator(
         showOtherCity ? otherCity : city,
-        selectedSkills
+        selectedSkills,
+        phoneNumber
       );
   
       if (result && result.user) {
-        // Actualizar estado del usuario primero
-        try {
-          // Usar una función temporal como precaución adicional
-          const updateCurrentUser = () => {
-            if (typeof setCurrentUser === 'function') {
-              setCurrentUser(result.user);
-            }
-          };
-          updateCurrentUser();
-        } catch (stateError) {
-          console.error("Error updating currentUser state:", stateError);
-        }
+        // Actualizar estado del usuario
+        setCurrentUser(result.user);
+        setUserExists(!!result.exists);
         
-        // Luego actualizar el estado de existencia
-        try {
-          // Usar una función temporal como precaución adicional
-          const updateUserExists = () => {
-            if (typeof setUserExists === 'function') {
-              setUserExists(!!result.exists);
-            }
-          };
-          updateUserExists();
-        } catch (stateError) {
-          console.error("Error updating userExists state:", stateError);
-        }
+        // Esperar a que los estados se actualicen
+        setTimeout(() => {
+          if (calculatedIncome) {
+            setStep(3);
+          }
+        }, 300);
         
         // Registrar éxito
         Mixpanel.track("Calculator_Login_Success", {
-          email: result.user.email || 'unknown'
+          email: result.user.email || 'unknown',
+          phone: phoneNumber
         });
-        
-        // Forzar refresco de la interfaz antes de cambiar el paso
-        // para asegurar que el botón "Iniciar sesión" desaparece
-        setTimeout(() => {
-          // Verificar de nuevo antes de cambiar el paso
-          if (result.user) {
-            setStep(3);
-          }
-        }, 200);
       }
     } catch (error) {
       console.error("Login error:", error);
       Mixpanel.track("Calculator_Login_Error", {
         error: error.message || 'unknown error',
       });
-      
-      // Incluso si hay un error, intentar avanzar al resultado si tenemos datos
-      setTimeout(() => {
-        if (calculatedIncome) {
-          setStep(3);
-        }
-      }, 200);
     } finally {
       setLoginLoading(false);
     }
@@ -270,75 +249,76 @@ useEffect(() => {
 
   return (
     <div className="min-h-screen bg-slate-200 flex flex-col">
-<header className="bg-primary-dark text-white py-3 shadow-md sticky top-0 z-50">
-  <div className="container mx-auto px-4 flex justify-center md:justify-between items-center">
-    {/* Logo centrado en móvil, alineado a la izquierda en desktop */}
-    <div className="flex items-center">
-      <img
-        src="https://res.cloudinary.com/dfgjenml4/image/upload/v1737657600/logoLigth_gbv7ds.png"
-        alt="Favorcito Logo"
-        className="h-6 md:h-7 transition-transform hover:scale-105"
-        onClick={() => navigate('/')}
-        style={{ cursor: "pointer" }}
-      />
-    </div>
-    
-    {/* Usuario NO logueado - solo visible en desktop */}
-    {!currentUser && step !== 3 && (
-      <div className="hidden md:block">
-        <Button
-          label="Iniciar sesión"
-          icon="pi pi-user"
-          onClick={() => setShowLoginPrompt(true)}
-          className="p-button-sm bg-white text-primary-dark font-semibold border-none rounded-full px-4 py-1.5 hover:bg-gray-50 transition-colors shadow-sm hover:shadow-md transform hover:-translate-y-0.5 duration-200"
-        />
-      </div>
-    )}
-    
-    {/* Usuario logueado - visible solo en desktop */}
-    {(currentUser || step === 3) && (
-      <div className="hidden md:flex items-center gap-2 bg-primary-dark/40 rounded-full px-3 py-1 border border-white/10 backdrop-blur-sm">
-        <img 
-          src={(currentUser && currentUser.photoURL) || "https://res.cloudinary.com/dfgjenml4/image/upload/v1739926023/Mask_group_rvnwra.png"}
-          alt="Profile" 
-          className="w-6 h-6 rounded-full border border-white/20 object-cover"
-          onError={(e) => {
-            e.target.src = "https://res.cloudinary.com/dfgjenml4/image/upload/v1739926023/Mask_group_rvnwra.png";
-          }}
-        />
-        <div className="block">
-          <p className="text-xs font-light truncate max-w-[150px]">
-            {currentUser?.displayName || "Mi perfil"}
-          </p>
+      <header className="bg-primary-dark text-white py-3 shadow-md sticky top-0 z-50">
+        <div className="container mx-auto px-4 flex justify-center md:justify-between items-center">
+          {/* Logo centrado en móvil, alineado a la izquierda en desktop */}
+          <div className="flex items-center">
+            <img
+              src="https://res.cloudinary.com/dfgjenml4/image/upload/v1737657600/logoLigth_gbv7ds.png"
+              alt="Favorcito Logo"
+              className="h-6 md:h-7 transition-transform hover:scale-105"
+              onClick={() => navigate('/')}
+              style={{ cursor: "pointer" }}
+            />
+          </div>
+          
+          {/* Usuario NO logueado - solo visible en desktop */}
+          {!currentUser && step !== 3 && (
+            <div className="hidden md:block">
+              <Button
+                label="Iniciar sesión"
+                icon="pi pi-user"
+                onClick={() => setShowLoginPrompt(true)}
+                className="p-button-sm bg-white text-primary-dark font-semibold border-none rounded-full px-4 py-1.5 hover:bg-gray-50 transition-colors shadow-sm hover:shadow-md transform hover:-translate-y-0.5 duration-200"
+              />
+            </div>
+          )}
+          
+          {/* Usuario logueado - visible solo en desktop */}
+          {(currentUser || step === 3) && (
+            <div className="hidden md:flex items-center gap-2 bg-primary-dark/40 rounded-full px-3 py-1 border border-white/10 backdrop-blur-sm">
+              <img 
+                src={(currentUser && currentUser.photoURL) || "https://res.cloudinary.com/dfgjenml4/image/upload/v1739926023/Mask_group_rvnwra.png"}
+                alt="Profile" 
+                className="w-6 h-6 rounded-full border border-white/20 object-cover"
+                onError={(e) => {
+                  e.target.src = "https://res.cloudinary.com/dfgjenml4/image/upload/v1739926023/Mask_group_rvnwra.png";
+                }}
+              />
+              <div className="block">
+                <p className="text-xs font-light truncate max-w-[150px]">
+                  {currentUser?.displayName || "Mi perfil"}
+                </p>
+              </div>
+              {userExists && (
+                <Button
+                  icon="pi pi-th-large"
+                  tooltip="Ir a dashboard"
+                  tooltipOptions={{ position: 'bottom' }}
+                  onClick={() => navigate('/dashboard')}
+                  className="p-button-rounded p-button-text p-button-sm text-white"
+                  aria-label="Dashboard"
+                />
+              )}
+            </div>
+          )}
         </div>
-        {userExists && (
-          <Button
-            icon="pi pi-th-large"
-            tooltip="Ir a dashboard"
-            tooltipOptions={{ position: 'bottom' }}
-            onClick={() => navigate('/dashboard')}
-            className="p-button-rounded p-button-text p-button-sm text-white"
-            aria-label="Dashboard"
-          />
-        )}
-      </div>
-    )}
-  </div>
-</header>
+      </header>
 
       <main ref={mainContentRef} className="flex-grow container mx-auto px-4 py-6 md:py-8">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-6 md:mb-10">
-            <h1 className="text-2xl md:text-4xl font-bold text-primary-dark mb-3 md:mb-4 relative inline-block">
-              Descubre cuánto puedes ganar
-              <span className="absolute -top-2 right-0 md:-right-8 bg-yellow-400 text-primary-dark text-xs px-2 py-0.5 rounded-md transform rotate-3">
-                ¡Nuevo!
-              </span>
-            </h1>
-            <p className="text-neutral-dark/70 max-w-2xl mx-auto text-base md:text-lg">
-              Calcula tu potencial de ingresos compartiendo tus habilidades
-            </p>
-          </div>
+        <div className="text-center mb-6 md:mb-10">
+  <h1 className="text-2xl md:text-4xl font-bold text-primary-dark mb-3 md:mb-4 relative inline-block">
+    Descubre cuánto puedes ganar
+    <span className="absolute -top-2 right-0 md:-right-8 bg-gradient-to-r from-yellow-400 to-yellow-300 text-primary-dark text-xs px-3 py-0.5 rounded-md transform rotate-3 shadow-sm animate-pulse">
+      ¡Nuevo!
+    </span>
+  </h1>
+  <p className="text-neutral-dark/70 max-w-2xl mx-auto text-base md:text-lg font-light">
+    <span className="inline-block">✨</span> Calcula tu potencial de ingresos compartiendo tus habilidades <span className="inline-block">💰</span>
+  </p>
+  <div className="w-20 h-1 bg-primary-dark/20 mx-auto mt-4 rounded-full"></div>
+</div>
 
           <div className="mb-6 max-w-xl mx-auto">
             <div className="flex items-center justify-between mb-2 px-2">
@@ -437,28 +417,55 @@ useEffect(() => {
                       className="w-full mb-4 p-inputtext-lg shadow-sm"
                       panelClassName="border border-slate-200"
                     />
-{showOtherCity && (
-  <div className="mb-4">
-    <div className="relative">
-      <InputText
-        ref={otherCityInputRef}
-        value={otherCity}
-        onChange={(e) => setOtherCity(e.target.value)}
-        placeholder="Ingresa tu ciudad"
-        className="w-full p-3 pl-10 border border-slate-200 rounded-lg"
-      />
-      <i className="pi pi-map-marker absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-    </div>
-    <div className="mt-2 bg-yellow-50 p-3 rounded-lg border border-yellow-100">
-      <p className="text-sm text-neutral-dark flex items-start">
-        <i className="pi pi-info-circle text-yellow-600 mt-0.5 mr-2"></i>
-        <span>
-          ¡Pronto llegaremos a tu ciudad! Por ahora, te mostraremos un estimado basado en nuestros precios.
-        </span>
-      </p>
-    </div>
+                    
+                    {showOtherCity && (
+                      <div className="mb-4">
+                        <div className="relative">
+                          <InputText
+                            ref={otherCityInputRef}
+                            value={otherCity}
+                            onChange={(e) => setOtherCity(e.target.value)}
+                            placeholder="Ingresa tu ciudad"
+                            className="w-full p-3 pl-10 border border-slate-200 rounded-lg"
+                          />
+                          <i className="pi pi-map-marker absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        </div>
+                        <div className="mt-2 bg-yellow-50 p-3 rounded-lg border border-yellow-100">
+                          <p className="text-sm text-neutral-dark flex items-start">
+                            <i className="pi pi-info-circle text-yellow-600 mt-0.5 mr-2"></i>
+                            <span>
+                              ¡Pronto llegaremos a tu ciudad! Por ahora, te mostraremos un estimado basado en nuestros precios.
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Campo de teléfono */}
+{/* Campo de teléfono */}
+<div className="mb-4">
+  <div className="relative">
+    <InputMask
+      id="phone"
+      ref={phoneInputRef}
+      value={phoneNumber}
+      onChange={(e) => setPhoneNumber(e.value)}
+      mask="99999999"
+      placeholder="69696969"
+      className="w-full p-3 pl-10 border border-slate-200 rounded-lg"
+    />
+    <i className="pi pi-phone absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+    <Tooltip target="#phone-info" position="top" />
+    <i 
+      id="phone-info" 
+      className="pi pi-info-circle absolute right-3 top-1/2 transform -translate-y-1/2 text-primary-dark/60 cursor-help"
+      data-pr-tooltip="¡Tira esos dígitos! 🤙 Prometo no mandarte memes random 😜"
+    />
   </div>
-)}
+  <p className="text-xs text-neutral-dark/60 mt-1 ml-2">
+    Te avisaremos cuando alguien requiera tus habilidades pro 🚀💯
+  </p>
+</div>
                     
                     <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-6">
                       <div className="flex items-start">
@@ -475,10 +482,10 @@ useEffect(() => {
                         label="Calcular mis ingresos"
                         icon="pi pi-calculator"
                         iconPos="right"
-                        disabled={!city || (showOtherCity && !otherCity)}
+                        disabled={!city || (showOtherCity && !otherCity) || !phoneNumber || phoneNumber === "+591-"}
                         onClick={handleCalculate}
                         className={`w-full px-6 py-2 rounded-lg ${
-                          !city || (showOtherCity && !otherCity)
+                          !city || (showOtherCity && !otherCity) || !phoneNumber || phoneNumber === "+591-"
                             ? "bg-gray-300 text-gray-600 cursor-not-allowed"
                             : "bg-primary-dark text-white hover:bg-primary-dark/90 shadow-md hover:shadow-lg transition-all"
                         }`}
@@ -509,6 +516,7 @@ useEffect(() => {
                     setOtherCity("");
                     setShowOtherCity(false);
                     setCalculatedIncome(null);
+                    setPhoneNumber("+591-");
                   }}
                   onRegister={handleLoginWithGoogle}
                   onDashboard={() => navigate("/dashboard")}
@@ -516,12 +524,8 @@ useEffect(() => {
               )}
             </div>
           </div>
-          
-
         </div>
       </main>
-
-
 
       <Dialog
         visible={showLoginPrompt}
