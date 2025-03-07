@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Button } from "primereact/button";
 import { useAuth } from "../context/AuthContext";
 import { Mixpanel } from "../services/mixpanel";
@@ -136,8 +136,8 @@ const AuthPage = () => {
     <div className="flex flex-col md:flex-row h-screen w-full overflow-hidden">
       {/* Mobile Layout (only visible on mobile) */}
       <div className="md:hidden flex flex-col h-screen bg-primary-dark">
-        {/* Top image carousel - 70% height para la imagen */}
-        <div className="h-[70%] relative overflow-hidden bg-neutral-800">
+        {/* Top image carousel - Reducido a 40% de la pantalla */}
+        <div className="h-2/5 relative overflow-hidden bg-neutral-800">
           <div className="absolute inset-0 transition-opacity duration-1000">
             <img
               src={carouselData[currentSlide].image}
@@ -146,7 +146,7 @@ const AuthPage = () => {
             />
           </div>
           
-          {/* Carousel Navigation Controls - Same for both Mobile and Desktop */}
+          {/* Carousel Navigation Controls */}
           <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-4 z-20">
             <button 
               onClick={goToPrevSlide} 
@@ -185,32 +185,37 @@ const AuthPage = () => {
           </div>
         </div>
 
-        {/* Bottom auth content with curved top - 30% height */}
-        <div className="h-[30%] flex flex-col px-6 bg-primary-dark rounded-t-3xl relative -mt-4 z-10">
-          <div className="flex flex-col h-full justify-evenly py-2">
-            {/* Logo */}
-            <div className="flex justify-center">
-              <img
-                src="https://res.cloudinary.com/dfgjenml4/image/upload/v1737657600/logoLigth_gbv7ds.png"
-                alt="Favorcito Logo"
-                className="h-6"
-              />
+        {/* Bottom auth content - Ahora ocupa 60% de la pantalla */}
+        <div className="h-3/5 flex flex-col px-6 bg-primary-dark rounded-t-3xl relative -mt-4 z-10">
+          <div className="flex flex-col py-5 h-full justify-between">
+            {/* Logo with home link */}
+            <div className="flex justify-center mb-4">
+              <Link to="/">
+                <img
+                  src="https://res.cloudinary.com/dfgjenml4/image/upload/v1737657600/logoLigth_gbv7ds.png"
+                  alt="Favorcito Logo"
+                  className="h-8"
+                />
+              </Link>
             </div>
 
             {/* Welcome Message */}
-            <div className="text-center">
-              <h1 className="text-sm text-white font-light">
+            <div className="text-center mb-5">
+              <h1 className="text-xl text-white font-light mb-2">
                 ¡Comparte tus habilidades!
               </h1>
+              <p className="text-white/70 text-sm">
+                Únete como estudiante y comienza a ofrecer tus servicios
+              </p>
             </div>
 
             {/* Auth Buttons Container */}
-            <div className="flex flex-col">
+            <div className="flex flex-col mb-8">
               {/* Google Sign in button */}
               <Button
                 onClick={() => handleLoginWithGoogle(true)}
                 disabled={authLoading}
-                className="p-button-secondary w-full flex items-center justify-center gap-2 bg-primary-light text-primary-dark border-none rounded-lg p-2 hover:bg-opacity-90 transition-colors font-medium mb-3"
+                className="p-button-secondary w-full flex items-center justify-center gap-2 bg-primary-light text-primary-dark border-none rounded-lg p-3 hover:bg-opacity-90 transition-colors font-medium mb-4"
               >
                 {authLoading ? (
                   <i className="pi pi-spin pi-spinner mr-2"></i>
@@ -226,7 +231,7 @@ const AuthPage = () => {
                 </span>
               </Button>
 
-              <div className="text-center mt-2">
+              <div className="text-center">
                 <p className="text-sm font-light text-white">
                   ¿Ya tienes una cuenta?
                   <Button
@@ -252,7 +257,7 @@ const AuthPage = () => {
           />
         </div>
 
-        {/* Desktop Carousel Navigation Controls - Same UI as Mobile */}
+        {/* Desktop Carousel Navigation Controls */}
         <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 flex justify-between px-6 z-20">
           <button 
             onClick={goToPrevSlide} 
@@ -293,13 +298,15 @@ const AuthPage = () => {
       {/* Right side - Desktop Auth form (hidden on mobile) */}
       <div className="hidden md:flex md:w-1/2 items-center justify-center p-6">
         <div className="w-full max-w-md flex flex-col items-center">
-          {/* Logo */}
+          {/* Logo with home link */}
           <div className="flex justify-center mb-10">
-            <img
-              src="https://res.cloudinary.com/dfgjenml4/image/upload/v1737657583/logoDark_uvqsz9.png"
-              alt="Favorcito Logo"
-              className="h-10"
-            />
+            <Link to="/">
+              <img
+                src="https://res.cloudinary.com/dfgjenml4/image/upload/v1737657583/logoDark_uvqsz9.png"
+                alt="Favorcito Logo"
+                className="h-10"
+              />
+            </Link>
           </div>
 
           {/* Welcome Message */}
