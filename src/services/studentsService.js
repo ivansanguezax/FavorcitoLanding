@@ -52,6 +52,31 @@ export const studentsService = {
       throw error;
     }
   },
+
+  updateStudent: async (studentId, updateData) => {
+    try {
+      // Verificar que el ID del estudiante no sea undefined o null
+      if (!studentId) {
+        throw new Error("ID de estudiante no válido");
+      }
+      
+      const response = await axios.put(
+        `${API_URL}/students/${studentId}/update`, 
+        updateData
+      );
+
+      if (!response.data || !response.data.success) {
+        throw new Error("Error al actualizar la información del estudiante");
+      }
+
+      return response.data;
+    } catch (error) {
+      console.error("Error en el servicio de actualización de estudiante:", error);
+      throw error;
+    }
+  }
+
+
 };
 
 export default studentsService;

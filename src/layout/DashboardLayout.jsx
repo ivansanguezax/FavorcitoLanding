@@ -17,6 +17,7 @@ import EmptyState from "../components/dashboard/EmptyState";
 import MobileNavbar from "../components/dashboard/MobileNavbar";
 import WalletComingSoon from "../components/dashboard/WalletComingSoon";
 import PendingProfileState from "../components/dashboard/PendingProfileState";
+import VerificationPendingState from "../components/dashboard/VerificationPendingState";
 
 const DashboardLayout = () => {
   const { currentUser, signOut } = useAuth();
@@ -30,8 +31,6 @@ const DashboardLayout = () => {
   const [activeTab, setActiveTab] = useState("home");
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [showProfile, setShowProfile] = useState(false);
-
-  
 
   const [first, setFirst] = useState(0);
   const [rows, setRows] = useState(6);
@@ -48,6 +47,11 @@ const DashboardLayout = () => {
       studentData.address === "Calculadora" &&
       studentData.university === "Calculadora"
     );
+  };
+
+  // Nueva función para verificar si el usuario está pendiente de verificación
+  const isPendingVerification = () => {
+    return studentData && studentData.verified === false;
   };
 
   useEffect(() => {
@@ -99,9 +103,21 @@ const DashboardLayout = () => {
         setStudentData(studentInfo);
 
         const favoresDisponibles = await favoresService.getAllFavores();
-        setFavores(favoresDisponibles);
-        setFilteredFavores(favoresDisponibles);
-        setTotalRecords(favoresDisponibles.length);
+        
+        // Filtrar favores solo de la ciudad del estudiante
+        const favoresDeCiudad = favoresDisponibles.filter(
+          favor => favor.Ciudad === studentInfo.city
+        );
+        
+        setFavores(favoresDisponibles); // Mantenemos todos por si acaso
+        setFilteredFavores(favoresDeCiudad); // Solo mostramos los de su ciudad
+        setTotalRecords(favoresDeCiudad.length);
+        
+        Mixpanel.track("Filtered_Favors_Loaded", {
+          user_city: studentInfo.city,
+          available_favors: favoresDeCiudad.length,
+          total_favors: favoresDisponibles.length
+        });
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
         setError(error.message);
@@ -161,12 +177,24 @@ const DashboardLayout = () => {
   const handleRefresh = () => {
     if (currentUser?.email) {
       setLoading(true);
-      favoresService
-        .getAllFavores()
+      
+      // Primero obtenemos la información actualizada del estudiante
+      studentsService.getStudentInfo(currentUser.email)
+        .then((updatedStudentInfo) => {
+          setStudentData(updatedStudentInfo);
+          
+          // Luego obtenemos los favores
+          return favoresService.getAllFavores();
+        })
         .then((data) => {
+          // Filtramos los favores por ciudad
+          const favoresDeCiudad = data.filter(
+            favor => favor.Ciudad === studentData.city
+          );
+          
           setFavores(data);
-          setFilteredFavores(data);
-          setTotalRecords(data.length);
+          setFilteredFavores(favoresDeCiudad);
+          setTotalRecords(favoresDeCiudad.length);
 
           toast.current.show({
             severity: "success",
@@ -176,7 +204,7 @@ const DashboardLayout = () => {
           });
         })
         .catch((error) => {
-          console.error("Error refreshing favors:", error);
+          console.error("Error refreshing data:", error);
           toast.current.show({
             severity: "error",
             summary: "Error",
@@ -306,7 +334,6 @@ const DashboardLayout = () => {
       <Toast ref={toast} />
 
       {/* Header */}
-      {/* Header */}
       <header className="bg-white shadow-md sticky top-0 z-20">
         <div className="container mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
           {/* Logo - Responsive con diferentes tamaños */}
@@ -360,126 +387,135 @@ const DashboardLayout = () => {
       </header>
 
       {/* Main content */}
-{/* Main content */}
-<main className="container mx-auto px-4 py-6">
-  {/* Layout para escritorio */}
-  <div className="hidden md:block">
-    {/* Saludo al usuario */}
-    <div className="bg-white rounded-xl shadow-sm p-5 mb-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-primary-dark mb-1">
-            ¡Hola,{" "}
-            {currentUser?.displayName?.split(" ")[0] ||
-              studentData?.name?.split(" ")[0] ||
-              "Usuario"}
-            !
-          </h2>
-          <p className="text-neutral-dark/80">
-            {showProfile
-              ? "Información de tu perfil"
-              : "Descubre nuevos favores disponibles para ti"}
-          </p>
-        </div>
-
-        {!showProfile && !isCalculatorUser() && (
-          <Button
-            label="Actualizar favores"
-            icon="pi pi-refresh"
-            className="bg-primary-dark text-white rounded-lg px-4 py-2 hover:bg-primary-dark/90 flex items-center"
-            onClick={handleRefresh}
-            disabled={loading}
-          />
-        )}
-
-        {!isCalculatorUser() && (
-          <Button
-            label={showProfile ? "Ver favores" : "Ver perfil"}
-            icon={showProfile ? "pi pi-list" : "pi pi-user"}
-            className="bg-neutral-light text-primary-dark border border-primary-dark/10 rounded-lg px-4 py-2 hover:bg-neutral-light/80 flex items-center ml-2"
-            onClick={() => setShowProfile(!showProfile)}
-          />
-        )}
-      </div>
-    </div>
-
-    {/* Contenido principal con toggle entre perfil y favores */}
-    <div className="transition-all duration-300">
-      {isCalculatorUser() ? (
-        <PendingProfileState 
-          studentData={studentData} 
-          onRefresh={handleRefresh} 
-        />
-      ) : (
-        showProfile ? (
-          <div className="w-full max-w-xl mx-auto">
-            <ProfileCard student={studentData} currentUser={currentUser} />
-          </div>
-        ) : (
-          renderActiveTabContent()
-        )
-      )}
-    </div>
-  </div>
-
-  {/* Layout para móvil */}
-  <div className="md:hidden">
-    {isCalculatorUser() ? (
-      <PendingProfileState 
-        studentData={studentData} 
-        onRefresh={handleRefresh} 
-      />
-    ) : (
-      <>
-        {activeTab === "home" && (
-          <div className="space-y-2">
-            {/* Espacio para compensar la cabecera fija */}
-            <div className="h-5"></div>
-
-            {/* Mensaje motivacional */}
-            <div className="px-4">
-              <h2 className="text-xl font-bold text-white leading-tight">
-                ¡Encuentra tu siguiente favorcito!
-              </h2>
-            </div>
-
-            {/* Título de los favores */}
-            <div className="rounded-t-xl pt-4 pb-5 px-4 shadow-sm">
-              <div className="flex justify-between items-center">
-                <h3 className="font-light text-white">Favorcitos</h3>
-                <span className="text-primary-light text-sm font-light">
-                  {filteredFavores.length} disponibles
-                </span>
+      <main className="container mx-auto px-4 py-6">
+        {/* Layout para escritorio */}
+        <div className="hidden md:block">
+          {/* Saludo al usuario */}
+          <div className="bg-white rounded-xl shadow-sm p-5 mb-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-2xl font-bold text-primary-dark mb-1">
+                  ¡Hola,{" "}
+                  {currentUser?.displayName?.split(" ")[0] ||
+                    studentData?.name?.split(" ")[0] ||
+                    "Usuario"}
+                  !
+                </h2>
+                <p className="text-neutral-dark/80">
+                  {showProfile
+                    ? "Información de tu perfil"
+                    : "Descubre nuevos favores disponibles para ti"}
+                </p>
               </div>
-            </div>
 
-            {/* Lista de favores en estilo tarjeta con scroll */}
-            <div className="px-4 pb-20 shadow-sm">
-              {filteredFavores.length > 0 ? (
-                <div className="space-y-4">
-                  {filteredFavores.map((favor) => (
-                    <FavorCard
-                      key={favor.ID}
-                      favor={favor}
-                      onViewDetails={handleViewFavorDetails}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <EmptyState
-                  icon="pi-inbox"
-                  title="No hay favores disponibles"
-                  message="En este momento no hay favores disponibles para tomar. ¡Vuelve más tarde!"
+              {!showProfile && !isCalculatorUser() && !isPendingVerification() && (
+                <Button
+                  label="Actualizar favores"
+                  icon="pi pi-refresh"
+                  className="bg-primary-dark text-white rounded-lg px-4 py-2 hover:bg-primary-dark/90 flex items-center"
+                  onClick={handleRefresh}
+                  disabled={loading}
+                />
+              )}
+
+              {!isCalculatorUser() && !isPendingVerification() && (
+                <Button
+                  label={showProfile ? "Ver favores" : "Ver perfil"}
+                  icon={showProfile ? "pi pi-list" : "pi pi-user"}
+                  className="bg-neutral-light text-primary-dark border border-primary-dark/10 rounded-lg px-4 py-2 hover:bg-neutral-light/80 flex items-center ml-2"
+                  onClick={() => setShowProfile(!showProfile)}
                 />
               )}
             </div>
           </div>
-        )}
-        {activeTab !== "home" && renderActiveTabContent()}
-      </>
-    )}
-  </div>
-</main>
+
+          {/* Contenido principal con toggle entre perfil y favores */}
+          <div className="transition-all duration-300">
+            {isCalculatorUser() ? (
+              <PendingProfileState 
+                studentData={studentData} 
+                onRefresh={handleRefresh} 
+              />
+            ) : isPendingVerification() ? (
+              <VerificationPendingState 
+                studentData={studentData} 
+                onRefresh={handleRefresh} 
+              />
+            ) : (
+              showProfile ? (
+                <div className="w-full max-w-xl mx-auto">
+                  <ProfileCard student={studentData} currentUser={currentUser} />
+                </div>
+              ) : (
+                renderActiveTabContent()
+              )
+            )}
+          </div>
+        </div>
+
+        {/* Layout para móvil */}
+        <div className="md:hidden">
+          {isCalculatorUser() ? (
+            <PendingProfileState 
+              studentData={studentData} 
+              onRefresh={handleRefresh} 
+            />
+          ) : isPendingVerification() ? (
+            <VerificationPendingState 
+              studentData={studentData} 
+              onRefresh={handleRefresh} 
+            />
+          ) : (
+            <>
+              {activeTab === "home" && (
+                <div className="space-y-2">
+                  {/* Espacio para compensar la cabecera fija */}
+                  <div className="h-5"></div>
+
+                  {/* Mensaje motivacional */}
+                  <div className="px-4">
+                    <h2 className="text-xl font-bold text-white leading-tight">
+                      ¡Encuentra tu siguiente favorcito!
+                    </h2>
+                  </div>
+
+                  {/* Título de los favores */}
+                  <div className="rounded-t-xl pt-4 pb-5 px-4 shadow-sm">
+                    <div className="flex justify-between items-center">
+                      <h3 className="font-light text-white">Favorcitos</h3>
+                      <span className="text-primary-light text-sm font-light">
+                        {filteredFavores.length} disponibles
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Lista de favores en estilo tarjeta con scroll */}
+                  <div className="px-4 pb-20 shadow-sm">
+                    {filteredFavores.length > 0 ? (
+                      <div className="space-y-4">
+                        {filteredFavores.map((favor) => (
+                          <FavorCard
+                            key={favor.ID}
+                            favor={favor}
+                            onViewDetails={handleViewFavorDetails}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <EmptyState
+                        icon="pi-inbox"
+                        title="No hay favores disponibles"
+                        message="En este momento no hay favores disponibles para tomar. ¡Vuelve más tarde!"
+                      />
+                    )}
+                  </div>
+                </div>
+              )}
+              {activeTab !== "home" && renderActiveTabContent()}
+            </>
+          )}
+        </div>
+      </main>
 
       {/* Barra de navegación móvil */}
       <MobileNavbar activeTab={activeTab} onTabChange={setActiveTab} />
