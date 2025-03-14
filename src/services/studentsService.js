@@ -74,9 +74,48 @@ export const studentsService = {
       console.error("Error en el servicio de actualización de estudiante:", error);
       throw error;
     }
+  },
+ // Método para postular a un favor con el endpoint correcto
+ applyToFavor: async (idStudent, idFavor) => {
+  try {
+    console.log("Intentando postular con:", { idStudent, idFavor });
+    
+    // Endpoint correcto para la postulación
+    const endpoint = `${API_URL}/students/applyToFavor`;
+    
+    console.log("URL para postulación:", endpoint);
+    
+    const response = await axios.post(endpoint, {
+      idStudent,
+      idFavor
+    });
+
+    if (!response.data || !response.data.success) {
+      throw new Error("Error al postular al favor");
+    }
+
+    return response.data;
+  } catch (error) {
+    console.error("Error al postular al favor:", error);
+    throw error;
   }
+},
 
+// Obtener favores aplicados
+getAppliedFavors: async (studentId) => {
+  try {
+    const response = await axios.get(`${API_URL}/students/getAppliedFavors?id=${studentId}`);
 
+    if (!response.data || !response.data.success) {
+      throw new Error("Error al obtener favores aplicados");
+    }
+
+    return response.data.data;
+  } catch (error) {
+    console.error("Error obteniendo favores aplicados:", error);
+    throw error;
+  }
+}
 };
 
 export default studentsService;

@@ -8,11 +8,15 @@ import Loader from "../components/Main/Loader";
 import { Paginator } from "primereact/paginator";
 import studentsService from "../services/studentsService";
 import favoresService from "../services/favoresService";
+import AppliedFavorCard from "../components/dashboard/AppliedFavorCard";
+
+import axios from "axios";
 import { Mixpanel } from "../services/mixpanel";
 
 import ProfileCard from "../components/dashboard/ProfileCard";
 import FavorCard from "../components/dashboard/FavorCard";
 import FavorDetailDialog from "../components/dashboard/FavorDetailDialog";
+import AppliedFavorsList from "../components/dashboard/AppliedFavorsList";
 import EmptyState from "../components/dashboard/EmptyState";
 import MobileNavbar from "../components/dashboard/MobileNavbar";
 import WalletComingSoon from "../components/dashboard/WalletComingSoon";
@@ -24,6 +28,8 @@ const DashboardLayout = () => {
   const [studentData, setStudentData] = useState(null);
   const [favores, setFavores] = useState([]);
   const [filteredFavores, setFilteredFavores] = useState([]);
+  const [appliedFavores, setAppliedFavores] = useState([]);
+  const [loadingAppliedFavores, setLoadingAppliedFavores] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedFavor, setSelectedFavor] = useState(null);
@@ -31,6 +37,7 @@ const DashboardLayout = () => {
   const [activeTab, setActiveTab] = useState("home");
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
   const [showProfile, setShowProfile] = useState(false);
+  const [showAppliedFavors, setShowAppliedFavors] = useState(false);
 
   const [first, setFirst] = useState(0);
   const [rows, setRows] = useState(6);
@@ -70,8 +77,23 @@ const DashboardLayout = () => {
       command: () => {
         if (isMobile) {
           setActiveTab("profile");
+          setShowAppliedFavors(false);
         } else {
-          setShowProfile(!showProfile);
+          setShowProfile(true);
+          setShowAppliedFavors(false);
+        }
+      },
+    },
+    {
+      label: "Mis Postulaciones",
+      icon: "pi pi-list",
+      command: () => {
+        if (isMobile) {
+          setActiveTab("home");
+          setShowAppliedFavors(true);
+        } else {
+          setShowProfile(false);
+          setShowAppliedFavors(true);
         }
       },
     },
@@ -84,6 +106,36 @@ const DashboardLayout = () => {
       command: handleSignOut,
     },
   ];
+
+  // Fetch student applied favors
+  const fetchAppliedFavors = async () => {
+    if (!studentData || !studentData.favoresAplicados || studentData.favoresAplicados.length === 0) {
+      setAppliedFavores([]);
+      return;
+    }
+    
+    try {
+      setLoadingAppliedFavores(true);
+      const appliedFavorIds = studentData.favoresAplicados;
+      const appliedFavorsList = await favoresService.getAppliedFavores(appliedFavorIds);
+      setAppliedFavores(appliedFavorsList);
+      
+      Mixpanel.track("Applied_Favors_Loaded", {
+        user_email: currentUser.email,
+        applied_favors_count: appliedFavorsList.length
+      });
+    } catch (error) {
+      console.error("Error fetching applied favors:", error);
+      toast.current.show({
+        severity: "error",
+        summary: "Error",
+        detail: "No se pudieron cargar tus postulaciones",
+        life: 3000,
+      });
+    } finally {
+      setLoadingAppliedFavores(false);
+    }
+  };
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -134,6 +186,13 @@ const DashboardLayout = () => {
     fetchDashboardData();
   }, [currentUser]);
 
+  // Load applied favors when student data is available
+  useEffect(() => {
+    if (studentData) {
+      fetchAppliedFavors();
+    }
+  }, [studentData]);
+
   // Función para cerrar sesión
   async function handleSignOut() {
     try {
@@ -174,6 +233,118 @@ const DashboardLayout = () => {
     }
   };
 
+  const handleApplySuccess = async (favorId) => {
+    // Update student data to include the new applied favor
+    try {
+      const updatedStudentInfo = await studentsService.getStudentInfo(currentUser.email);
+      setStudentData(updatedStudentInfo);
+      
+      // Refresh applied favors list
+      await fetchAppliedFavors();
+      
+      toast.current.show({
+        severity: "success",
+        summary: "¡Éxito!",
+        detail: "Tu postulación ha sido registrada correctamente",
+        life: 3000,
+      });
+    } catch (error) {
+      console.error("Error updating student data after applying:", error);
+    }
+  };
+  
+  // Método alternativo para postular directamente si la API falla
+  const handleDirectApply = async (studentId, favorId) => {
+    try {
+      console.log("Intentando postulación directa:", { studentId, favorId });
+      
+      // Usar una petición directa sin pasar por el servicio
+      const API_URL = import.meta.env.VITE_API_URL;
+      
+      // Usar el endpoint correcto
+      const endpoint = `${API_URL}/students/applyToFavor`;
+      console.log(`Intentando con endpoint correcto: ${endpoint}`);
+      
+      let response;
+      let succeeded = false;
+      let successfulEndpoint = '';
+      
+      try {
+        response = await axios.post(endpoint, {
+          idStudent: studentId,
+          idFavor: favorId
+        });
+        
+        if (response.data && response.status === 200) {
+          succeeded = true;
+          successfulEndpoint = endpoint;
+          console.log(`Éxito con endpoint: ${endpoint}`, response.data);
+        }
+      } catch (err) {
+        console.log(`Falló el endpoint principal ${endpoint}:`, err.message);
+        // Si falla, intentar con endpoints alternativos como último recurso
+        
+        const fallbackEndpoints = [
+          `${API_URL}/students/apply`,
+          `${API_URL}/favores/apply`,
+          `${API_URL}/favores/postular`
+        ];
+        
+        for (const backupEndpoint of fallbackEndpoints) {
+          try {
+            console.log(`Intentando con endpoint alternativo: ${backupEndpoint}`);
+            response = await axios.post(backupEndpoint, {
+              idStudent: studentId,
+              idFavor: favorId
+            });
+            
+            if (response.data && response.status === 200) {
+              succeeded = true;
+              successfulEndpoint = backupEndpoint;
+              console.log(`Éxito con endpoint alternativo: ${backupEndpoint}`, response.data);
+              break;
+            }
+          } catch (fallbackErr) {
+            console.log(`Falló endpoint alternativo ${backupEndpoint}:`, fallbackErr.message);
+          }
+        }
+      }
+      
+      if (succeeded) {
+        toast.current.show({
+          severity: "success",
+          summary: "¡Éxito!",
+          detail: `Tu postulación ha sido registrada correctamente usando ${successfulEndpoint}`,
+          life: 5000,
+        });
+        
+        // Actualizar datos del estudiante
+        const updatedStudentInfo = await studentsService.getStudentInfo(currentUser.email);
+        setStudentData(updatedStudentInfo);
+        await fetchAppliedFavors();
+        
+        return true;
+      } else {
+        toast.current.show({
+          severity: "error",
+          summary: "Error",
+          detail: "No se pudo completar la postulación con ninguna ruta API conocida. Por favor, contacta al administrador.",
+          life: 5000,
+        });
+        return false;
+      }
+    } catch (error) {
+      console.error("Error en postulación directa:", error);
+      toast.current.show({
+        severity: "error",
+        summary: "Error",
+        detail: "Error al intentar postular. Consulta la consola para más detalles.",
+        life: 3000,
+      });
+      return false;
+    }
+  };
+
   const handleRefresh = () => {
     if (currentUser?.email) {
       setLoading(true);
@@ -195,6 +366,9 @@ const DashboardLayout = () => {
           setFavores(data);
           setFilteredFavores(favoresDeCiudad);
           setTotalRecords(favoresDeCiudad.length);
+          
+          // Actualizar favores aplicados
+          fetchAppliedFavors();
 
           toast.current.show({
             severity: "success",
@@ -315,7 +489,18 @@ const DashboardLayout = () => {
   const renderActiveTabContent = () => {
     switch (activeTab) {
       case "home":
-        return <div className="space-y-6">{renderFavoresContent()}</div>;
+        return (
+          <div className="space-y-6">
+            {isMobile && showAppliedFavors ? (
+              <AppliedFavorsList 
+                appliedFavors={appliedFavores} 
+                loading={loadingAppliedFavores} 
+              />
+            ) : (
+              renderFavoresContent()
+            )}
+          </div>
+        );
       case "wallet":
         return <WalletComingSoon />;
       case "profile":
@@ -402,13 +587,15 @@ const DashboardLayout = () => {
                   !
                 </h2>
                 <p className="text-neutral-dark/80">
-                  {showProfile
-                    ? "Información de tu perfil"
-                    : "Descubre nuevos favores disponibles para ti"}
+                  {showProfile 
+                    ? "Información de tu perfil" 
+                    : showAppliedFavors 
+                      ? "Tus postulaciones a favores"
+                      : "Descubre nuevos favores disponibles para ti"}
                 </p>
               </div>
 
-              {!showProfile && !isCalculatorUser() && !isPendingVerification() && (
+              {!showProfile && !showAppliedFavors && !isCalculatorUser() && !isPendingVerification() && (
                 <Button
                   label="Actualizar favores"
                   icon="pi pi-refresh"
@@ -419,17 +606,48 @@ const DashboardLayout = () => {
               )}
 
               {!isCalculatorUser() && !isPendingVerification() && (
-                <Button
-                  label={showProfile ? "Ver favores" : "Ver perfil"}
-                  icon={showProfile ? "pi pi-list" : "pi pi-user"}
-                  className="bg-neutral-light text-primary-dark border border-primary-dark/10 rounded-lg px-4 py-2 hover:bg-neutral-light/80 flex items-center ml-2"
-                  onClick={() => setShowProfile(!showProfile)}
-                />
+                <div className="flex gap-2">
+                  {!showAppliedFavors && (
+                    <Button
+                      label="Mis postulaciones"
+                      icon="pi pi-list"
+                      className="bg-neutral-light text-primary-dark border border-primary-dark/10 rounded-lg px-4 py-2 hover:bg-neutral-light/80 flex items-center"
+                      onClick={() => {
+                        setShowAppliedFavors(true);
+                        setShowProfile(false);
+                      }}
+                    />
+                  )}
+                  
+                  {!showProfile && (
+                    <Button
+                      label="Ver perfil"
+                      icon="pi pi-user"
+                      className="bg-neutral-light text-primary-dark border border-primary-dark/10 rounded-lg px-4 py-2 hover:bg-neutral-light/80 flex items-center"
+                      onClick={() => {
+                        setShowProfile(true);
+                        setShowAppliedFavors(false);
+                      }}
+                    />
+                  )}
+                  
+                  {(showProfile || showAppliedFavors) && (
+                    <Button
+                      label="Ver favores"
+                      icon="pi pi-search"
+                      className="bg-primary-dark text-white rounded-lg px-4 py-2 hover:bg-primary-dark/90 flex items-center"
+                      onClick={() => {
+                        setShowProfile(false);
+                        setShowAppliedFavors(false);
+                      }}
+                    />
+                  )}
+                </div>
               )}
             </div>
           </div>
 
-          {/* Contenido principal con toggle entre perfil y favores */}
+          {/* Contenido principal con toggle entre perfil, favores y postulaciones */}
           <div className="transition-all duration-300">
             {isCalculatorUser() ? (
               <PendingProfileState 
@@ -446,6 +664,11 @@ const DashboardLayout = () => {
                 <div className="w-full max-w-xl mx-auto">
                   <ProfileCard student={studentData} currentUser={currentUser} />
                 </div>
+              ) : showAppliedFavors ? (
+                <AppliedFavorsList 
+                  appliedFavors={appliedFavores} 
+                  loading={loadingAppliedFavores} 
+                />
               ) : (
                 renderActiveTabContent()
               )
@@ -475,38 +698,81 @@ const DashboardLayout = () => {
                   {/* Mensaje motivacional */}
                   <div className="px-4">
                     <h2 className="text-xl font-bold text-white leading-tight">
-                      ¡Encuentra tu siguiente favorcito!
+                      {showAppliedFavors 
+                        ? "Tus postulaciones" 
+                        : "¡Encuentra tu siguiente favorcito!"}
                     </h2>
                   </div>
 
                   {/* Título de los favores */}
                   <div className="rounded-t-xl pt-4 pb-5 px-4 shadow-sm">
                     <div className="flex justify-between items-center">
-                      <h3 className="font-light text-white">Favorcitos</h3>
-                      <span className="text-primary-light text-sm font-light">
-                        {filteredFavores.length} disponibles
-                      </span>
+                      <h3 className="font-light text-white">
+                        {showAppliedFavors ? "Mis Postulaciones" : "Favorcitos"}
+                      </h3>
+                      <div className="flex gap-2">
+                        {showAppliedFavors ? (
+                          <Button
+                            icon="pi pi-search"
+                            className="p-button-rounded p-button-text text-white"
+                            onClick={() => setShowAppliedFavors(false)}
+                            tooltip="Ver favores disponibles"
+                            tooltipOptions={{ position: 'bottom' }}
+                          />
+                        ) : (
+                          <>
+                            <span className="text-primary-light text-sm font-light">
+                              {filteredFavores.length} disponibles
+                            </span>
+                            <Button
+                              icon="pi pi-list"
+                              className="p-button-rounded p-button-text text-white"
+                              onClick={() => setShowAppliedFavors(true)}
+                              tooltip="Ver mis postulaciones"
+                              tooltipOptions={{ position: 'bottom' }}
+                            />
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Lista de favores en estilo tarjeta con scroll */}
+                  {/* Lista de favores o postulaciones según estado */}
                   <div className="px-4 pb-20 shadow-sm">
-                    {filteredFavores.length > 0 ? (
-                      <div className="space-y-4">
-                        {filteredFavores.map((favor) => (
-                          <FavorCard
-                            key={favor.ID}
-                            favor={favor}
-                            onViewDetails={handleViewFavorDetails}
-                          />
-                        ))}
-                      </div>
+                    {showAppliedFavors ? (
+                      // Mostrar postulaciones en móvil
+                      appliedFavores && appliedFavores.length > 0 ? (
+                        <div className="space-y-4">
+                          {appliedFavores.map((favor) => (
+                            <AppliedFavorCard key={favor.ID} favor={favor} />
+                          ))}
+                        </div>
+                      ) : (
+                        <EmptyState
+                          icon="pi-inbox"
+                          title="No hay postulaciones"
+                          message="Aún no te has postulado a ningún favor. ¡Explora los favores disponibles y postúlate!"
+                        />
+                      )
                     ) : (
-                      <EmptyState
-                        icon="pi-inbox"
-                        title="No hay favores disponibles"
-                        message="En este momento no hay favores disponibles para tomar. ¡Vuelve más tarde!"
-                      />
+                      // Mostrar favores disponibles
+                      filteredFavores.length > 0 ? (
+                        <div className="space-y-4">
+                          {filteredFavores.map((favor) => (
+                            <FavorCard
+                              key={favor.ID}
+                              favor={favor}
+                              onViewDetails={handleViewFavorDetails}
+                            />
+                          ))}
+                        </div>
+                      ) : (
+                        <EmptyState
+                          icon="pi-inbox"
+                          title="No hay favores disponibles"
+                          message="En este momento no hay favores disponibles para tomar. ¡Vuelve más tarde!"
+                        />
+                      )
                     )}
                   </div>
                 </div>
@@ -525,6 +791,9 @@ const DashboardLayout = () => {
         visible={favorDetailVisible}
         favor={selectedFavor}
         onHide={() => setFavorDetailVisible(false)}
+        studentId={studentData?.id}
+        onApplySuccess={handleApplySuccess}
+        onDirectApply={handleDirectApply}
       />
     </div>
   );

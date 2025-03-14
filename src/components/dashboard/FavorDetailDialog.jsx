@@ -5,14 +5,18 @@ import { Tag } from "primereact/tag";
 import { formatCurrency, formatDate } from "../../utils/formatters";
 import { useState, useEffect, useRef } from "react";
 import { Toast } from "primereact/toast";
+import studentsService from "../../services/studentsService";
+import { useAuth } from "../../context/AuthContext";
+import { Mixpanel } from "../../services/mixpanel";
 
-const FavorDetailDialog = ({ visible, favor, onHide }) => {
+const FavorDetailDialog = ({ visible, favor, onHide, studentId, onApplySuccess, onDirectApply }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccessMessage, setShowSuccessMessage] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [showScrollIndicator, setShowScrollIndicator] = useState(true);
   const contentRef = useRef(null);
   const toast = useRef(null);
+  const { currentUser } = useAuth();
   
   useEffect(() => {
     // Reset states when dialog becomes visible
@@ -68,6 +72,7 @@ const FavorDetailDialog = ({ visible, favor, onHide }) => {
     "Rango de tiempo": rangoTiempo,
     Urgencia: urgencia,
     Foto: foto,
+    ID: favorId
   } = favor;
 
   const getUrgencyProps = (urgencia) => {
@@ -111,19 +116,109 @@ const FavorDetailDialog = ({ visible, favor, onHide }) => {
 
   const urgencyProps = getUrgencyProps(urgencia);
   
-  const handlePostulacion = () => {
+  const handlePostulacion = async () => {
+    if (!studentId) {
+      toast.current.show({
+        severity: "error",
+        summary: "Error",
+        detail: "No se pudo identificar tu cuenta. Por favor, actualiza la página e intenta de nuevo.",
+        life: 3000,
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     
-    // Simulación de envío
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setShowSuccessMessage(true);
+    try {
+      console.log(`Iniciando postulación para estudiante ID: ${studentId}, favor ID: ${favorId}`);
       
-      // Cerrar después de mostrar mensaje de éxito
-      setTimeout(() => {
-        onHide();
-      }, 2000);
-    }, 1500);
+      // Información de debug para ayudar a resolver el problema
+      console.log("Datos de favor:", favor);
+      
+      let postulacionExitosa = false;
+      
+      try {
+        // Usar el servicio de estudiantes con el endpoint correcto: students/applyToFavor
+        const resultado = await studentsService.applyToFavor(studentId, favorId);
+        console.log("Resultado de postulación:", resultado);
+        postulacionExitosa = true;
+      } catch (primaryError) {
+        console.error("Falló el método primario de postulación:", primaryError);
+        
+        // Si falla el método principal, intentar con el método directo (solo como respaldo)
+        if (onDirectApply) {
+          console.log("Intentando método alternativo de postulación...");
+          postulacionExitosa = await onDirectApply(studentId, favorId);
+        } else {
+          // Si no hay método alternativo, relanzar el error original
+          throw primaryError;
+        }
+      }
+      
+      if (postulacionExitosa) {
+        // Track successful application
+        Mixpanel.track("Favor_Application_Success", {
+          favor_id: favorId,
+          favor_type: tipoFavor,
+          user_email: currentUser?.email
+        });
+        
+        setShowSuccessMessage(true);
+        
+        // Notify parent component
+        if (onApplySuccess) {
+          onApplySuccess(favorId);
+        }
+        
+        // Close dialog after showing success message
+        setTimeout(() => {
+          onHide();
+        }, 2000);
+      } else {
+        throw new Error("No se pudo completar la postulación");
+      }
+    } catch (error) {
+      console.error("Error al postular:", error);
+      
+      // Mostrar mensaje más detallado para ayudar a diagnosticar
+      let mensajeError = "No se pudo completar tu postulación.";
+      
+      if (error.response) {
+        // La solicitud se realizó y el servidor respondió con un código de estado
+        // que cae fuera del rango 2xx
+        mensajeError += ` Error ${error.response.status}: ${error.response.statusText || 'No se encontró el endpoint'}.`;
+        console.log("Detalles del error:", error.response.data);
+        
+        // Agregar mensaje de solución
+        mensajeError += " Por favor, contacta al administrador del sistema para verificar la ruta API correcta.";
+      } else if (error.request) {
+        // La solicitud se realizó pero no se recibió respuesta
+        mensajeError += " No se recibió respuesta del servidor. Verifica tu conexión a internet.";
+      } else {
+        // Ocurrió un error al configurar la solicitud
+        mensajeError += ` ${error.message}`;
+      }
+      
+      toast.current.show({
+        severity: "error",
+        summary: "Error",
+        detail: mensajeError,
+        life: 5000,
+      });
+      setIsSubmitting(false);
+      
+      // Si es un error 404, podemos mostrar un mensaje adicional
+      if (error.response && error.response.status === 404) {
+        setTimeout(() => {
+          toast.current.show({
+            severity: "info",
+            summary: "Sugerencia",
+            detail: "El problema parece ser que la ruta de la API no existe. Comunícate con el equipo de desarrollo para confirmar la ruta correcta para postular.",
+            life: 8000,
+          });
+        }, 1000);
+      }
+    }
   };
 
   const isValidImageUrl = (url) => {
@@ -366,6 +461,9 @@ FavorDetailDialog.propTypes = {
   visible: PropTypes.bool.isRequired,
   favor: PropTypes.object,
   onHide: PropTypes.func.isRequired,
+  studentId: PropTypes.number,
+  onApplySuccess: PropTypes.func,
+  onDirectApply: PropTypes.func
 };
 
 export default FavorDetailDialog;
