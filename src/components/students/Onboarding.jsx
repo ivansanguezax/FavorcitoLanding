@@ -11,10 +11,10 @@ const OnboardingStep = ({
 }) => {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
+      exit={{ opacity: 0, y: -10 }}
+      transition={{ duration: 0.15, ease: "easeOut" }}
       className="flex flex-col w-full"
     >
       {/* Banner de imagen mejorado */}
@@ -34,52 +34,34 @@ const OnboardingStep = ({
         </div>
       </div>
 
-      {/* Contenido principal con animación */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2, duration: 0.3 }}
-        className="px-6 sm:px-8 pt-6 pb-8"
-      >
-        {/* Título principal con animación */}
-        <motion.h2
-          initial={{ opacity: 0, y: 5 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3, duration: 0.3 }}
-          className="text-2xl sm:text-3xl font-bold text-primary-dark mb-4"
-        >
+      {/* Contenido principal */}
+      <div className="px-6 sm:px-8 pt-6 pb-8">
+        {/* Título principal */}
+        <h2 className="text-2xl sm:text-3xl font-bold text-primary-dark mb-4">
           {step.title}
-        </motion.h2>
+        </h2>
 
-        {/* Descripción con mejor contraste y animación */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4, duration: 0.3 }}
-          className="text-neutral-dark text-base sm:text-lg mb-8 leading-relaxed"
-        >
+        {/* Descripción con mejor contraste */}
+        <p className="text-neutral-dark text-base sm:text-lg mb-8 leading-relaxed">
           {step.description}
-        </motion.p>
+        </p>
 
         {/* Indicador de pasos mejorado */}
         <div className="flex justify-center space-x-3 mb-8">
           {[0, 1, 2].map((i) => (
             <motion.div
               key={i}
-              initial={{ opacity: 0, scale: 0.8 }}
               animate={{
-                opacity: 1,
-                scale: 1,
                 width: i === step.index ? "2rem" : "0.75rem",
                 backgroundColor: i === step.index ? "#02533C" : "#CACCCF",
               }}
               transition={{
-                delay: 0.5 + i * 0.1,
-                duration: 0.3,
+                duration: 0.2,
                 type: "spring",
-                stiffness: 300,
+                stiffness: 500,
+                damping: 30,
               }}
-              className={`h-3 rounded-full transition-all duration-300`}
+              className="h-3 rounded-full transition-all"
             />
           ))}
         </div>
@@ -87,10 +69,7 @@ const OnboardingStep = ({
         {/* Botones de navegación mejorados */}
         <div className="flex justify-between w-full mt-6">
           {step.index > 0 ? (
-            <motion.button
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.6, duration: 0.3 }}
+            <button
               onClick={onPrevious}
               className="py-3 px-6 rounded-lg font-medium text-neutral-dark hover:bg-neutral-light transition-all duration-200 flex items-center"
             >
@@ -109,15 +88,12 @@ const OnboardingStep = ({
                 />
               </svg>
               Atrás
-            </motion.button>
+            </button>
           ) : (
             <div className="w-24"></div>
           )}
 
-          <motion.button
-            initial={{ opacity: 0, x: 10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.6, duration: 0.3 }}
+          <button
             onClick={isLastStep ? onComplete : onNext}
             className="py-3 px-8 bg-primary-dark text-white rounded-lg font-medium shadow-md hover:bg-primary-dark/90 active:transform active:scale-95 transition-all duration-200 flex items-center"
           >
@@ -136,9 +112,9 @@ const OnboardingStep = ({
                 d="M9 5l7 7-7 7"
               />
             </svg>
-          </motion.button>
+          </button>
         </div>
-      </motion.div>
+      </div>
     </motion.div>
   );
 };
@@ -190,9 +166,10 @@ const Onboarding = ({ onComplete }) => {
     const preloadAll = async () => {
       try {
         await Promise.all(steps.map((step) => preloadImage(step.image)));
+        // Reducir el timeout de 800ms a 200ms
         setTimeout(() => {
           setIsLoading(false);
-        }, 800);
+        }, 200);
       } catch (err) {
         console.error("Error al cargar las imágenes:", err);
         setIsLoading(false);
@@ -221,13 +198,13 @@ const Onboarding = ({ onComplete }) => {
   return (
     <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 px-4 sm:px-6">
       <motion.div
-        initial={{ opacity: 0, scale: 0.9, y: 20 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.9, y: 20 }}
-        transition={{ duration: 0.5, type: "spring", damping: 25 }}
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.95 }}
+        transition={{ duration: 0.2, type: "spring", damping: 35, stiffness: 400 }}
         className="bg-white rounded-2xl shadow-2xl overflow-hidden w-full max-w-md sm:max-w-lg mx-auto relative"
       >
-        {/* Botón cerrar rediseñado */}
+        {/* Botón cerrar */}
         <button
           onClick={onComplete}
           className="absolute top-4 right-4 z-20 bg-white/90 rounded-full w-8 h-8 flex items-center justify-center hover:bg-white transition-all duration-200 shadow-md"

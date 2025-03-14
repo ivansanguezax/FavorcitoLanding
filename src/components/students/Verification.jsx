@@ -321,15 +321,39 @@ const Verification = ({ formData, onPrevious, onSubmit }) => {
                   </span>
                   <div className="flex flex-wrap gap-2 mt-1">
                     {Object.keys(formData.availability || {}).length > 0 ? (
-                      Object.keys(formData.availability).map((day, index) => (
-                        <span
-                          key={index}
-                          className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-blue-50 text-blue-700 border border-blue-100"
-                        >
-                          <i className="pi pi-calendar text-xs mr-1"></i>
-                          {day}
-                        </span>
-                      ))
+                      (() => {
+                        // Define el orden de los días para ordenarlos correctamente
+                        const weekDayOrder = [
+                          "Lunes",
+                          "Martes",
+                          "Miercoles",
+                          "Jueves",
+                          "Viernes",
+                          "Sabado",
+                          "Domingo",
+                        ];
+
+                        // Ordena los días según el orden natural de la semana
+                        const orderedDays = Object.keys(formData.availability)
+                          .filter(
+                            (day) => formData.availability[day]?.length > 0
+                          ) // Solo mostrar días con horarios
+                          .sort((a, b) => {
+                            const indexA = weekDayOrder.indexOf(a);
+                            const indexB = weekDayOrder.indexOf(b);
+                            return indexA - indexB;
+                          });
+
+                        return orderedDays.map((day, index) => (
+                          <span
+                            key={index}
+                            className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-blue-50 text-blue-700 border border-blue-100"
+                          >
+                            <i className="pi pi-calendar text-xs mr-1"></i>
+                            {day}
+                          </span>
+                        ));
+                      })()
                     ) : (
                       <span className="text-sm text-neutral-dark">
                         No especificados

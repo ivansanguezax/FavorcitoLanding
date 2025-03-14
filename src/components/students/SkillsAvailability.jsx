@@ -5,11 +5,16 @@ import { MultiSelect } from "primereact/multiselect";
 import PropTypes from "prop-types";
 import { Mixpanel } from "../../services/mixpanel";
 
-const SkillsAvailability = ({ formData, updateFormData, onNext, onPrevious }) => {
+const SkillsAvailability = ({
+  formData,
+  updateFormData,
+  onNext,
+  onPrevious,
+}) => {
   const [showAdditionalFields, setShowAdditionalFields] = useState(false);
   const [showOtherSkills, setShowOtherSkills] = useState(false);
   const [menuRef, setMenuRef] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState('todos');
+  const [selectedCategory, setSelectedCategory] = useState("todos");
   const [showOnlySelected, setShowOnlySelected] = useState(false);
 
   useEffect(() => {
@@ -55,14 +60,13 @@ const SkillsAvailability = ({ formData, updateFormData, onNext, onPrevious }) =>
 
   // Categorizar servicios
   const categories = [
-    { name: 'todos', label: 'Todos', icon: 'pi pi-th-large' },
-    { name: 'hogar', label: 'Hogar', icon: 'pi pi-home' },
-    { name: 'tecnología', label: 'Tecnología', icon: 'pi pi-desktop' },
-    { name: 'educación', label: 'Educación', icon: 'pi pi-book' },
-    { name: 'cuidados', label: 'Cuidados', icon: 'pi pi-heart' },
-    { name: 'eventos', label: 'Eventos', icon: 'pi pi-calendar' },
+    { name: "todos", label: "Todos", icon: "pi pi-th-large" },
+    { name: "hogar", label: "Hogar", icon: "pi pi-home" },
+    { name: "tecnología", label: "Tecnología", icon: "pi pi-desktop" },
+    { name: "educación", label: "Educación", icon: "pi pi-book" },
+    { name: "cuidados", label: "Cuidados", icon: "pi pi-heart" },
+    { name: "eventos", label: "Eventos", icon: "pi pi-calendar" },
   ];
-
 
   const services = [
     {
@@ -227,25 +231,25 @@ const SkillsAvailability = ({ formData, updateFormData, onNext, onPrevious }) =>
   const handleSkillSelect = (skill) => {
     const currentSkills = formData.skills || [];
     let updatedSkillValues;
-  
+
     if (currentSkills.includes(skill.value)) {
       updatedSkillValues = currentSkills.filter((s) => s !== skill.value);
-      
+
       Mixpanel.track("Skill_Removed", {
         skill_name: skill.value,
         skills_total: updatedSkillValues.length - 1,
-        is_last_skill: updatedSkillValues.length === 1
+        is_last_skill: updatedSkillValues.length === 1,
       });
     } else {
       updatedSkillValues = [...currentSkills, skill.value];
-      
+
       Mixpanel.track("Skill_Added", {
         skill_name: skill.value,
         skills_total: updatedSkillValues.length,
-        is_first_skill: currentSkills.length === 0
+        is_first_skill: currentSkills.length === 0,
       });
     }
-  
+
     updateFormData({
       skills: updatedSkillValues,
       ...(updatedSkillValues.length === 0 && {
@@ -343,12 +347,18 @@ const SkillsAvailability = ({ formData, updateFormData, onNext, onPrevious }) =>
     const daysWithSchedules = getDaysWithSchedules(dayName);
 
     if (daysWithSchedules.length === 0) {
-      return <div className="p-3 font-medium text-primary-dark">Selecciona horarios</div>;
+      return (
+        <div className="p-3 font-medium text-primary-dark">
+          Selecciona horarios
+        </div>
+      );
     }
 
     return (
       <div className="p-4">
-        <div className="font-medium mb-3 text-primary-dark">Selecciona horarios</div>
+        <div className="font-medium mb-3 text-primary-dark">
+          Selecciona horarios
+        </div>
         <div className="border-t border-neutral-gray/20 pt-4 mb-3">
           <div className="text-sm font-medium mb-3 flex items-center text-primary-dark">
             <i className="pi pi-copy mr-2 text-primary-dark"></i>
@@ -394,23 +404,25 @@ const SkillsAvailability = ({ formData, updateFormData, onNext, onPrevious }) =>
   // Filtrar servicios por categoría y por selección si está activa
   const getFilteredServices = () => {
     let result = services;
-    
+
     // Primero filtrar por categoría si no es "todos"
-    if (selectedCategory !== 'todos') {
-      result = result.filter(service => service.category === selectedCategory);
+    if (selectedCategory !== "todos") {
+      result = result.filter(
+        (service) => service.category === selectedCategory
+      );
     }
-    
+
     // Luego filtrar por seleccionados si está activado
     if (showOnlySelected) {
-      result = result.filter(service => isSkillSelected(service.value));
+      result = result.filter((service) => isSkillSelected(service.value));
     }
-    
+
     return result;
   };
 
   const toggleShowSelected = () => {
     setShowOnlySelected(!showOnlySelected);
-    setSelectedCategory('todos');
+    setSelectedCategory("todos");
   };
 
   return (
@@ -425,41 +437,41 @@ const SkillsAvailability = ({ formData, updateFormData, onNext, onPrevious }) =>
       </div>
 
       <div className="bg-white rounded-xl p-4 sm:p-6 shadow-sm border border-neutral-gray/10">
-{/* Versión mejorada de los filtros */}
-<div className="bg-neutral-100 p-2 rounded-lg mb-5">
-  <div className="flex flex-wrap gap-2">
-    {categories.map(category => (
-      <button 
-        key={category.name}
-        onClick={() => {
-          setSelectedCategory(category.name);
-          setShowOnlySelected(false);
-        }}
-        className={`px-3 py-2 text-sm rounded-lg transition-all duration-200 flex items-center gap-2 ${
-          selectedCategory === category.name && !showOnlySelected
-            ? 'bg-primary-dark text-white font-medium' 
-            : 'text-neutral-dark bg-gray-200  hover:bg-gray-400'
-        }`}
-      >
-        <i className={`${category.icon} text-sm`}></i>
-        {category.label}
-      </button>
-    ))}
-    
-    {/* Botón para mostrar solo seleccionados */}
-    <button 
-      onClick={toggleShowSelected}
-      className={`px-3 py-2 text-sm rounded-lg transition-all duration-200 flex items-center gap-2 ${
-        showOnlySelected
-          ? 'bg-primary-dark text-white shadow-sm font-medium' 
-          : 'text-neutral-dark bg-gray-200  hover:bg-white/70'
-      }`}
-    >
-      <i className="pi pi-check-square text-sm"></i>
-      Seleccionados
-    </button>
-  </div>
-</div>
+        {/* Versión mejorada de los filtros */}
+        <div className="bg-neutral-100 p-2 rounded-lg mb-5">
+          <div className="flex flex-wrap gap-2">
+            {categories.map((category) => (
+              <button
+                key={category.name}
+                onClick={() => {
+                  setSelectedCategory(category.name);
+                  setShowOnlySelected(false);
+                }}
+                className={`px-3 py-2 text-sm rounded-lg transition-all duration-200 flex items-center gap-2 ${
+                  selectedCategory === category.name && !showOnlySelected
+                    ? "bg-primary-dark text-white font-medium"
+                    : "text-neutral-dark bg-gray-200  hover:bg-gray-400"
+                }`}
+              >
+                <i className={`${category.icon} text-sm`}></i>
+                {category.label}
+              </button>
+            ))}
+
+            {/* Botón para mostrar solo seleccionados */}
+            <button
+              onClick={toggleShowSelected}
+              className={`px-3 py-2 text-sm rounded-lg transition-all duration-200 flex items-center gap-2 ${
+                showOnlySelected
+                  ? "bg-primary-dark text-white shadow-sm font-medium"
+                  : "text-neutral-dark bg-gray-200  hover:bg-white/70"
+              }`}
+            >
+              <i className="pi pi-check-square text-sm"></i>
+              Seleccionados
+            </button>
+          </div>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6 gap-3">
           {getFilteredServices().map((service) => (
             <div
@@ -473,13 +485,17 @@ const SkillsAvailability = ({ formData, updateFormData, onNext, onPrevious }) =>
                 }`}
             >
               {/* Efecto hover */}
-              <div className={`absolute inset-0 bg-primary-dark/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 ${isSkillSelected(service.value) ? 'hidden' : ''}`}></div>
-              
-              <div 
+              <div
+                className={`absolute inset-0 bg-primary-dark/10 opacity-0 group-hover:opacity-100 transition-opacity duration-200 ${
+                  isSkillSelected(service.value) ? "hidden" : ""
+                }`}
+              ></div>
+
+              <div
                 className={`w-12 h-12 rounded-full flex items-center justify-center mb-3
                   ${
                     isSkillSelected(service.value)
-                      ? "bg-white/20" 
+                      ? "bg-white/20"
                       : "bg-primary-light/20"
                   }`}
               >
@@ -500,7 +516,7 @@ const SkillsAvailability = ({ formData, updateFormData, onNext, onPrevious }) =>
               >
                 {service.title}
               </p>
-              
+
               {/* Checkmark para elementos seleccionados */}
               {isSkillSelected(service.value) && (
                 <div className="absolute top-2 right-2 w-5 h-5 bg-white/30 rounded-full flex items-center justify-center">
@@ -510,41 +526,43 @@ const SkillsAvailability = ({ formData, updateFormData, onNext, onPrevious }) =>
             </div>
           ))}
         </div>
-        
+
         {formData.skills?.length > 0 && (
           <div className="mt-5 flex flex-col sm:flex-row items-start sm:items-center justify-between border border-primary-light/20 rounded-lg p-3 bg-primary-light/5">
-  <div className="flex items-center w-full mb-2 sm:mb-0">
-    <div className="w-8 h-8 shrink-0 rounded-full bg-primary-dark/10 flex items-center justify-center mr-3">
-      <i className="pi pi-check text-primary-dark"></i>
-    </div>
-    <p className="text-sm text-neutral-dark break-words">
-      Has seleccionado <span className="font-medium">{formData.skills.length}</span> servicios
-    </p>
-  </div>
-  
-  <div className="flex w-full sm:w-auto justify-end">
-    {formData.skills.length > 0 && !showOnlySelected && (
-      <Button
-        label={window.innerWidth < 640 ? "" : "Seleccionados"}
-        icon="pi pi-eye"
-        className="p-button-text p-button-sm text-primary-dark"
-        onClick={toggleShowSelected}
-      />
-    )}
-    
-    {showOnlySelected && (
-      <Button
-        label={window.innerWidth < 640 ? "" : "Ver todos"}
-        icon="pi pi-list"
-        className="p-button-text p-button-sm text-primary-dark"
-        onClick={() => {
-          setShowOnlySelected(false);
-          setSelectedCategory('todos');
-        }}
-      />
-    )}
-  </div>
-</div>
+            <div className="flex items-center w-full mb-2 sm:mb-0">
+              <div className="w-8 h-8 shrink-0 rounded-full bg-primary-dark/10 flex items-center justify-center mr-3">
+                <i className="pi pi-check text-primary-dark"></i>
+              </div>
+              <p className="text-sm text-neutral-dark break-words">
+                Has seleccionado{" "}
+                <span className="font-medium">{formData.skills.length}</span>{" "}
+                servicios
+              </p>
+            </div>
+
+            <div className="flex w-full sm:w-auto justify-end">
+              {formData.skills.length > 0 && !showOnlySelected && (
+                <Button
+                  label={window.innerWidth < 640 ? "" : "Seleccionados"}
+                  icon="pi pi-eye"
+                  className="p-button-text p-button-sm text-primary-dark"
+                  onClick={toggleShowSelected}
+                />
+              )}
+
+              {showOnlySelected && (
+                <Button
+                  label={window.innerWidth < 640 ? "" : "Ver todos"}
+                  icon="pi pi-list"
+                  className="p-button-text p-button-sm text-primary-dark"
+                  onClick={() => {
+                    setShowOnlySelected(false);
+                    setSelectedCategory("todos");
+                  }}
+                />
+              )}
+            </div>
+          </div>
         )}
       </div>
 
@@ -556,7 +574,7 @@ const SkillsAvailability = ({ formData, updateFormData, onNext, onPrevious }) =>
                 <i className="pi pi-bolt text-primary-dark mr-2"></i>
                 Detalla tus otros servicios
               </h3>
-              
+
               <InputTextarea
                 value={formData.otherSkills || ""}
                 onChange={(e) =>
@@ -576,7 +594,8 @@ const SkillsAvailability = ({ formData, updateFormData, onNext, onPrevious }) =>
             </h3>
 
             <p className="text-neutral-dark/70 text-sm mb-4">
-              Selecciona los días y horarios en los que puedes brindar tus servicios
+              Selecciona los días y horarios en los que puedes brindar tus
+              servicios
             </p>
 
             <div className="border border-neutral-gray/20 rounded-xl p-3 sm:p-5 bg-neutral-light/20">
@@ -606,52 +625,59 @@ const SkillsAvailability = ({ formData, updateFormData, onNext, onPrevious }) =>
               {Object.keys(formData.availability || {}).length > 0 ? (
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    {Object.keys(formData.availability || {}).map((dayName) => (
-                      <div key={dayName} className="mb-4 relative">
-                        <div className="flex justify-between items-center mb-2">
-                          <label className="text-sm font-medium text-primary-dark flex items-center">
-                            <i className="pi pi-calendar-plus text-primary-dark/70 mr-2 text-sm"></i>
-                            {dayName}
-                          </label>
-                        </div>
+{Object.keys(formData.availability || {})
+  .sort((a, b) => {
+    // Obtener el índice de cada día en el array weekDays
+    const indexA = weekDays.findIndex(day => day.value === a);
+    const indexB = weekDays.findIndex(day => day.value === b);
+    // Ordenar por índice
+    return indexA - indexB;
+  })
+  .map((dayName) => (
+    <div key={dayName} className="mb-4 relative">
+      <div className="flex justify-between items-center mb-2">
+        <label className="text-sm font-medium text-primary-dark flex items-center">
+          <i className="pi pi-calendar-plus text-primary-dark/70 mr-2 text-sm"></i>
+          {dayName}
+        </label>
+      </div>
 
-                        <div className="relative">
-  <MultiSelect
-    value={getSelectedTimes(dayName)}
-    options={timeSlots}
-    onChange={(e) => handleTimeSelect(dayName, e.value)}
-    optionLabel="label"
-    placeholder="Selecciona horarios"
-    display="chip"
-    className="w-full border-2 border-neutral-gray rounded-lg"
-    panelClassName="mt-2 shadow-lg border border-neutral-gray/20 rounded-lg bg-white"
-    panelHeaderTemplate={(options) =>
-      getHeaderContent({
-        ...options,
-        context: { ...options.context, day: dayName },
-      })
-    }
-    panelFooterTemplate={(options) =>
-      panelTemplate({
-        ...options,
-        context: { ...options.context, day: dayName },
-      })
-    }
-    hideSelectedOptions={false}
-    style={{ "--panel-header-bg": "#fff", "--panel-color": "#333" }}
-  />
-  {/* El botón de X ahora aparece separado del control */}
-  {getSelectedTimes(dayName).length > 0 && (
-    <Button
-      icon="pi pi-trash"
-      className="p-button-text p-button-rounded p-button-sm text-neutral-dark/70 absolute -top-10 right-0"
-      onClick={() => clearDayTimes(dayName)}
-      tooltip="Deseleccionar día"
-    />
-  )}
-</div>
-                      </div>
-                    ))}
+      <div className="relative">
+        <MultiSelect
+          value={getSelectedTimes(dayName)}
+          options={timeSlots}
+          onChange={(e) => handleTimeSelect(dayName, e.value)}
+          optionLabel="label"
+          placeholder="Selecciona horarios"
+          display="chip"
+          className="w-full border-2 border-neutral-gray rounded-lg"
+          panelClassName="mt-2 shadow-lg border border-neutral-gray/20 rounded-lg bg-white"
+          panelHeaderTemplate={(options) =>
+            getHeaderContent({
+              ...options,
+              context: { ...options.context, day: dayName },
+            })
+          }
+          panelFooterTemplate={(options) =>
+            panelTemplate({
+              ...options,
+              context: { ...options.context, day: dayName },
+            })
+          }
+          hideSelectedOptions={false}
+          style={{ "--panel-header-bg": "#fff", "--panel-color": "#333" }}
+        />
+        {getSelectedTimes(dayName).length > 0 && (
+          <Button
+            icon="pi pi-trash"
+            className="p-button-text p-button-rounded p-button-sm text-neutral-dark/70 absolute -top-10 right-0"
+            onClick={() => clearDayTimes(dayName)}
+            tooltip="Deseleccionar día"
+          />
+        )}
+      </div>
+    </div>
+  ))}
                   </div>
                 </div>
               ) : (
@@ -659,7 +685,9 @@ const SkillsAvailability = ({ formData, updateFormData, onNext, onPrevious }) =>
                   <div className="w-12 h-12 rounded-full bg-primary-light/20 flex items-center justify-center mb-3">
                     <i className="pi pi-calendar text-primary-dark"></i>
                   </div>
-                  <p className="text-neutral-dark font-medium mb-1">Sin días seleccionados</p>
+                  <p className="text-neutral-dark font-medium mb-1">
+                    Sin días seleccionados
+                  </p>
                   <p className="text-neutral-dark/70 text-sm text-center">
                     Haz clic en los días en los que puedes brindar tus servicios
                   </p>

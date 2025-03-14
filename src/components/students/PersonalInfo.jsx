@@ -20,6 +20,8 @@ const PersonalInfo = ({ formData, updateFormData, onNext }) => {
   const [showCustomZona, setShowCustomZona] = useState(false);
   const [showSwitchAccountDialog, setShowSwitchAccountDialog] = useState(false);
   const [welcomeShown, setWelcomeShown] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+const [isEditingEmail, setIsEditingEmail] = useState(false);
 
   const cities = Object.keys(zonasData.Bolivia).map((city) => ({
     label: city,
@@ -298,72 +300,115 @@ const PersonalInfo = ({ formData, updateFormData, onNext }) => {
       <div className="space-y-8 bg-white rounded-xl shadow-sm border border-neutral-gray/10 p-6">
         {/* Nombre y correo (lado a lado en desktop) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-          <div className="flex flex-col space-y-2">
-            <label
-              htmlFor="fullName"
-              className="text-neutral-dark font-medium flex items-center"
-            >
-              Nombre completo <span className="text-red-500 ml-1">*</span>
-              <span className="ml-auto bg-green-50 px-2 py-0.5 rounded-full text-xs text-green-700 flex items-center">
-                <i className="pi pi-check text-xs mr-1"></i>Verificado
-              </span>
-            </label>
-            <div className="relative">
-              <InputText
-                id="fullName"
-                value={formData.fullName || ""}
-                onChange={(e) =>
-                  updateFormData({
-                    ...formData,
-                    fullName: e.target.value,
-                  })
-                }
-                className="w-full border-2 bg-neutral-light/50 border-neutral-gray/30 rounded-lg px-4 py-2.5 h-12"
-                placeholder="Ingresa tu nombre completo"
-                disabled={true}
-              />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <i className="pi pi-check-circle text-green-500"></i>
-              </div>
-            </div>
-            <p className="text-xs text-neutral-dark/60">
-              Obtenido de tu cuenta de Google
-            </p>
-          </div>
-
-          <div className="flex flex-col space-y-2">
-            <label
-              htmlFor="email"
-              className="text-neutral-dark font-medium flex items-center"
-            >
-              Correo electrónico <span className="text-red-500 ml-1">*</span>
-              <span className="ml-auto bg-green-50 px-2 py-0.5 rounded-full text-xs text-green-700 flex items-center">
-                <i className="pi pi-check text-xs mr-1"></i>Verificado
-              </span>
-            </label>
-            <div className="relative">
-              <InputText
-                id="email"
-                value={formData.email || ""}
-                onChange={(e) =>
-                  updateFormData({
-                    ...formData,
-                    email: e.target.value,
-                  })
-                }
-                className="w-full border-2 bg-neutral-light/50 border-neutral-gray/30 rounded-lg px-4 py-2.5 h-12"
-                placeholder="correo@ejemplo.com"
-                type="email"
-                disabled={true}
-              />
-              <div className="absolute right-3 top-1/2 -translate-y-1/2">
-                <i className="pi pi-check-circle text-green-500"></i>
-              </div>
-            </div>
-            <p className="text-xs text-neutral-dark/60">
-              Obtenido de tu cuenta de Google
-            </p>
-          </div>
+        <div className="flex flex-col space-y-2">
+  <label
+    htmlFor="fullName"
+    className="text-neutral-dark font-medium flex items-center"
+  >
+    Nombre completo <span className="text-red-500 ml-1">*</span>
+    <span className="ml-auto bg-green-50 px-2 py-0.5 rounded-full text-xs text-green-700 flex items-center">
+      <i className="pi pi-check text-xs mr-1"></i>Verificado
+    </span>
+  </label>
+  <div className="relative">
+    <InputText
+      id="fullName"
+      value={formData.fullName || ""}
+      onChange={(e) =>
+        updateFormData({
+          ...formData,
+          fullName: e.target.value,
+        })
+      }
+      className="w-full border-2 bg-neutral-light/50 border-neutral-gray/30 rounded-lg px-4 py-2.5 h-12 pr-16"
+      placeholder="Ingresa tu nombre completo"
+      disabled={!isEditingName}
+    />
+    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+      {!isEditingName ? (
+        <Button
+          icon="pi pi-pencil"
+          className="p-button-text p-button-sm"
+          onClick={() => setIsEditingName(true)}
+          tooltip="Editar nombre"
+        />
+      ) : (
+        <Button
+          icon="pi pi-check"
+          className="p-button-text p-button-sm p-button-success"
+          onClick={() => setIsEditingName(false)}
+          tooltip="Guardar"
+        />
+      )}
+      <i className="pi pi-check-circle text-green-500"></i>
+    </div>
+    {formData.fullName && formData.fullName.length > 25 && !isEditingName && (
+      <div className="absolute left-4 right-16 top-1/2 -translate-y-1/2 pointer-events-none">
+        <div className="truncate">
+          {formData.fullName}
+        </div>
+      </div>
+    )}
+  </div>
+  <p className="text-xs text-neutral-dark/60">
+    Obtenido de tu cuenta de Google
+  </p>
+</div>
+<div className="flex flex-col space-y-2">
+  <label
+    htmlFor="email"
+    className="text-neutral-dark font-medium flex items-center"
+  >
+    Correo electrónico <span className="text-red-500 ml-1">*</span>
+    <span className="ml-auto bg-green-50 px-2 py-0.5 rounded-full text-xs text-green-700 flex items-center">
+      <i className="pi pi-check text-xs mr-1"></i>Verificado
+    </span>
+  </label>
+  <div className="relative">
+    <InputText
+      id="email"
+      value={formData.email || ""}
+      onChange={(e) =>
+        updateFormData({
+          ...formData,
+          email: e.target.value,
+        })
+      }
+      className="w-full border-2 bg-neutral-light/50 border-neutral-gray/30 rounded-lg px-4 py-2.5 h-12 pr-16"
+      placeholder="correo@ejemplo.com"
+      type="email"
+      disabled={!isEditingEmail}
+    />
+    <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1">
+      {!isEditingEmail ? (
+        <Button
+          icon="pi pi-pencil"
+          className="p-button-text p-button-sm"
+          onClick={() => setIsEditingEmail(true)}
+          tooltip="Editar correo"
+        />
+      ) : (
+        <Button
+          icon="pi pi-check"
+          className="p-button-text p-button-sm p-button-success"
+          onClick={() => setIsEditingEmail(false)}
+          tooltip="Guardar"
+        />
+      )}
+      <i className="pi pi-check-circle text-green-500"></i>
+    </div>
+    {formData.email && formData.email.length > 25 && !isEditingEmail && (
+      <div className="absolute left-4 right-16 top-1/2 -translate-y-1/2 pointer-events-none">
+        <div className="truncate">
+          {formData.email}
+        </div>
+      </div>
+    )}
+  </div>
+  <p className="text-xs text-neutral-dark/60">
+    Obtenido de tu cuenta de Google
+  </p>
+</div>
         </div>
 
         {/* Fecha de nacimiento y teléfono (lado a lado en desktop) */}
