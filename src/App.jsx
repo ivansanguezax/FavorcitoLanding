@@ -77,7 +77,7 @@ const HomeRoute = ({ children }) => {
   }
 
   if (currentUser && !userExists) {
-    return <Navigate to="/estudiante" replace />;
+    return <Navigate to="/registro" replace />;
   }
 
   return children;
@@ -94,7 +94,7 @@ const NavigationController = () => {
   useEffect(() => {
     const handlePopState = () => {
       if (currentUser && userExists) {
-        const restrictedPaths = ["/estudiante", "/auth"];
+        const restrictedPaths = ["/auth", "/registro", "/unete", "/comienza"];
         const currentPath = window.location.pathname;
 
         if (restrictedPaths.some((path) => currentPath.includes(path))) {
@@ -120,7 +120,9 @@ function AppWithAuth() {
   useEffect(() => {
     const handleNavigation = () => {
       const isRegistrationPage =
-        window.location.pathname.includes("/estudiante");
+        window.location.pathname.includes("/registro") ||
+        window.location.pathname.includes("/unete") ||
+        window.location.pathname.includes("/comienza");
 
       if (isRegistrationPage && currentUser && userExists) {
         navigate("/dashboard", { replace: true });
@@ -154,8 +156,27 @@ function AppWithAuth() {
         {/* Ruta para la calculadora de ingresos */}
         <Route path="/calculadora" element={<IncomeCalculatorPage />} />
 
+        {/* Rutas de registro */}
         <Route
-          path="/estudiante/*"
+          path="/registro/*"
+          element={
+            <RegisterRoute>
+              <FormStudentsLayout />
+            </RegisterRoute>
+          }
+        />
+
+        <Route
+          path="/unete/*"
+          element={
+            <RegisterRoute>
+              <FormStudentsLayout />
+            </RegisterRoute>
+          }
+        />
+
+        <Route
+          path="/comienza/*"
           element={
             <RegisterRoute>
               <FormStudentsLayout />
