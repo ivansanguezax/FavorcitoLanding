@@ -77,7 +77,7 @@ const HomeRoute = ({ children }) => {
   }
 
   if (currentUser && !userExists) {
-    return <Navigate to="/registro" replace />;
+    return <Navigate to="/estudiante" replace />;
   }
 
   return children;
@@ -94,7 +94,7 @@ const NavigationController = () => {
   useEffect(() => {
     const handlePopState = () => {
       if (currentUser && userExists) {
-        const restrictedPaths = ["/auth", "/registro", "/unete", "/comienza"];
+        const restrictedPaths = ["/estudiante", "/auth", "/registro", "/unete", "/comienza"];
         const currentPath = window.location.pathname;
 
         if (restrictedPaths.some((path) => currentPath.includes(path))) {
@@ -120,9 +120,7 @@ function AppWithAuth() {
   useEffect(() => {
     const handleNavigation = () => {
       const isRegistrationPage =
-        window.location.pathname.includes("/registro") ||
-        window.location.pathname.includes("/unete") ||
-        window.location.pathname.includes("/comienza");
+        window.location.pathname.includes("/estudiante");
 
       if (isRegistrationPage && currentUser && userExists) {
         navigate("/dashboard", { replace: true });
@@ -151,32 +149,17 @@ function AppWithAuth() {
           }
         />
 
+        {/* Rutas de autenticación - todas apuntan al mismo componente AuthPage */}
         <Route path="/auth" element={<AuthPage />} />
+        <Route path="/registro" element={<AuthPage />} />
+        <Route path="/unete" element={<AuthPage />} />
+        <Route path="/comienza" element={<AuthPage />} />
         
         {/* Ruta para la calculadora de ingresos */}
         <Route path="/calculadora" element={<IncomeCalculatorPage />} />
 
-        {/* Rutas de registro */}
         <Route
-          path="/registro/*"
-          element={
-            <RegisterRoute>
-              <FormStudentsLayout />
-            </RegisterRoute>
-          }
-        />
-
-        <Route
-          path="/unete/*"
-          element={
-            <RegisterRoute>
-              <FormStudentsLayout />
-            </RegisterRoute>
-          }
-        />
-
-        <Route
-          path="/comienza/*"
+          path="/estudiante/*"
           element={
             <RegisterRoute>
               <FormStudentsLayout />
